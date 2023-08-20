@@ -44,19 +44,12 @@ while (True):
         # track.predict()
         track.iou_match(content)
         track.update()
-        track.draw(frame)
+    track.draw(frame)
     cv2.putText(frame, "ALL BOXES(Green)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
     cv2.putText(frame, "TRACKED BOX(Red)", (25, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
     cv2.putText(frame, "Last frame best estimation(White)", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255),
                 2)
-    if track.max_iou_matched:
-        cv2.putText(frame, "Tracking", (int(track.target_box[0]), int(track.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7, (255, 0, 0), 2)
-    else:
-        cv2.putText(frame, "Lost", (int(track.target_box[0]), int(track.target_box[1] - 5)),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.7, (255, 255, 0), 2)
-    plot_one_box(track.target_box, frame, color=(255, 255, 255), target=track.max_iou_matched)
+
     cv2.imshow('track', frame)
     if SAVE_VIDEO:
         out.write(frame)

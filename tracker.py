@@ -6,7 +6,7 @@ import datetime
 from kalmanfilter import KalmanFilter
 
 class  Tracks:
-    def __init__(self, initial_state, initial_cov = np.eye(6)):
+    def __init__(self, initial_state, initial_cov = np.eye(6), track_id=0):
         # 默认初始化状态为[x ,y, w, h, 0, 0]
         # initial_state =
         self.X = initial_state
@@ -20,6 +20,7 @@ class  Tracks:
         self.max_trace_number = 50
         self.max_iou_matched = False
         self.Z = np.array(self.X) #初始化观测矩阵为X
+        self.track_id = track_id
 
     # def predict(self):
     #     self.X, self.P = self.KF.predict(self.X, self.P)
@@ -67,3 +68,11 @@ class  Tracks:
 
     def draw(self, img):
         draw_trace(img, self.trace_point_list)
+        if self.max_iou_matched:
+            cv2.putText(img, f"Tracking  ID={self.track_id}", (int(self.target_box[0]), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.7, (255, 0, 0), 2)
+        else:
+            cv2.putText(img, "Lost", (int(self.target_box[0]), int(self.target_box[1] - 5)),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.7, (255, 255, 0), 2)
+        plot_one_box(self.target_box, img, color=(255, 255, 255), target=self.max_iou_matched)
