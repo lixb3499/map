@@ -30,7 +30,8 @@ class  Tracks:
         self.target_box = xywh_to_xyxy(self.X[0:4]) #predict后更新一下目标框
         for j, data_ in enumerate(detect):
             data = data_.replace('\n', "").split(" ")
-            detect_xyxy = np.array(data[1:5], dtype="float")
+            detect_xywh = np.array(data[1:5], dtype="float")
+            detect_xyxy = xywh_to_xyxy(detect_xywh)
             # plot_one_box(xyxy, frame)
             iou = cal_iou(detect_xyxy, xywh_to_xyxy(self.X[0:4]))
             if iou > max_iou:
@@ -54,7 +55,7 @@ class  Tracks:
         self.xywh = self.X[0:4]
         self.target_box = xywh_to_xyxy(self.X[0:4])
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
-        self.updata_trace_list(20)
+        self.updata_trace_list(50)
 
 
     def updata_trace_list(self, max_trace_number=50):
