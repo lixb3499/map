@@ -9,9 +9,9 @@ class  Tracks:
     def __init__(self, initial_state, initial_cov = np.eye(6), track_id=0):
         # 默认初始化状态为[x ,y, w, h, 0, 0]
         # initial_state =
-        self.X = initial_state
+        self.X = np.append(initial_state,[0,0])
         self.P =initial_cov
-        self.IOU_Threshold = 0.3 # 匹配时的阈值
+        self.IOU_Threshold = 0.1 # 匹配时的阈值
         self.target_box = xywh_to_xyxy(self.X[0:4]) #检测到匹配上的目标的框
         self.target_xywh = self.X[0:4]
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
@@ -21,6 +21,9 @@ class  Tracks:
         self.max_iou_matched = False
         self.Z = np.array(self.X) #初始化观测矩阵为X
         self.track_id = track_id
+        self.lost_number = 0
+        self.number_since_match = 0
+        self.confirmflag = False  # 轨迹需要检测到三帧以上才能变为确定的一条轨迹
 
     # def predict(self):
     #     self.X, self.P = self.KF.predict(self.X, self.P)
@@ -29,16 +32,24 @@ class  Tracks:
         self.max_iou_matched = False
         max_iou = self.IOU_Threshold
         self.target_box = xywh_to_xyxy(self.X[0:4]) #predict后更新一下目标框
-        for j, data_ in enumerate(detect):
-            data = data_.replace('\n', "").split(" ")
-            detect_xywh = np.array(data[1:5], dtype="float")
-            detect_xyxy = xywh_to_xyxy(detect_xywh)
-            # plot_one_box(xyxy, frame)
-            iou = cal_iou(detect_xyxy, xywh_to_xyxy(self.X[0:4]))
-            if iou > max_iou:
-                self.target_box = detect_xyxy
-                max_iou = iou
-                self.max_iou_matched = True
+        # for j, data_ in enumerate(detect):
+        #     data = data_.replace('\n', "").split(" ")
+        #     detect_xywh = np.array(data[1:5], dtype="float")
+        #     detect_xyxy = xywh_to_xyxy(detect_xywh)
+        #     # plot_one_box(xyxy, frame)
+        #     iou = cal_iou(detect_xyxy, xywh_to_xyxy(self.X[0:4]))
+        #     if iou > max_iou:
+        #         self.target_box = detect_xyxy
+        #         max_iou = iou
+        #         self.max_iou_matched = True
+
+        detect_xyxy = xywh_to_xyxy(detect)
+        # plot_one_box(xyxy, frame)
+        iou = cal_iou(detect_xyxy, xywh_to_xyxy(self.X[0:4]))
+        if iou > max_iou:
+            self.target_box = detect_xyxy
+            max_iou = iou
+            self.max_iou_matched = True
 
     def update(self):
         if self.max_iou_matched:
@@ -51,8 +62,12 @@ class  Tracks:
             self.Z[4::] = np.array([dx, dy])
             self.X, self.P = self.KF.predict(self.X, self.P)
             self.X, self.P = self.KF.update(self.X, self.P, self.Z)
+            self.number_since_match += 1
+            self.lost_number = 0
         else:
             self.X, self.P = self.KF.predict(self.X, self.P)
+            self.number_since_match = 0
+            self.lost_number +=1
         self.xywh = self.X[0:4]
         self.target_box = xywh_to_xyxy(self.X[0:4])
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
