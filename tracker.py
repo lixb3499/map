@@ -17,6 +17,7 @@ class  Tracks:
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
         self.KF = KalmanFilter()
         self.trace_point_list = [] #储存轨迹的历史点信息用于画轨迹
+        self.trace_v_list = []
         self.max_trace_number = 50
         self.max_iou_matched = False
         self.Z = np.array(self.X) #初始化观测矩阵为X
@@ -55,23 +56,26 @@ class  Tracks:
         if self.max_iou_matched:
             # self.detect_xywh = xyxy_to_xywh(self.detect_xyxy)
             self.target_xywh = xyxy_to_xywh(self.target_box)
-            dx = self.target_xywh[0] - self.X[0]
-            dy = self.target_xywh[1] - self.X[1]
+            self.dx = self.target_xywh[0] - self.X[0]
+            self.dy = self.target_xywh[1] - self.X[1]
 
             self.Z[0:4] = np.array(self.target_xywh).T
-            self.Z[4::] = np.array([dx, dy])
+            self.Z[4::] = np.array([self.dx, self.dy])
             self.X, self.P = self.KF.predict(self.X, self.P)
             self.X, self.P = self.KF.update(self.X, self.P, self.Z)
             self.number_since_match += 1
             self.lost_number = 0
         else:
+            if len(self.trace_v_list) > 0:      #第一次检测到的时候也是匹配不到的
+                self.X[-2::] = self.trace_v_list[0]
             self.X, self.P = self.KF.predict(self.X, self.P)
             self.number_since_match = 0
-            self.lost_number +=1
+            self.lost_number += 1
         self.xywh = self.X[0:4]
         self.target_box = xywh_to_xyxy(self.X[0:4])
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
         self.updata_trace_list(50)
+        # self.updata_v_list(25)
 
 
     def updata_trace_list(self, max_trace_number=50):
@@ -81,12 +85,23 @@ class  Tracks:
             self.trace_point_list.pop(0)
             self.trace_point_list.append(self.box_center)
 
+    def updata_v_list(self, max_v_number=5):
+        if len(self.trace_v_list) <= max_v_number:
+            if hasattr(self, 'dx'):
+                self.trace_v_list.append([self.dx, self.dy])
+        else:
+            self.trace_v_list.pop(0)
+            self.trace_v_list.append([self.dx, self.dy])
+
     def draw(self, img):
         draw_trace(img, self.trace_point_list)
         if self.max_iou_matched:
             cv2.putText(img, f"Tracking  ID={self.track_id}", (int(self.target_box[0]), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
                         0.7, (255, 0, 0), 2)
+
+            # draw_trace(img, self.trace_point_list)
         else:
+            pass
             cv2.putText(img, "Lost", (int(self.target_box[0]), int(self.target_box[1] - 5)),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.7, (255, 255, 0), 2)

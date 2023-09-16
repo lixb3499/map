@@ -74,7 +74,7 @@ class Tracker:
             track.update()  # 卡尔曼状态更新
             if track.lost_number>self.max_lost_number:  #超过一段时间没有匹配上则直接删除
                 self.tracks.remove(track)
-            if (not track.confirmflag) and (track.number_since_match>3):
+            if (not track.confirmflag) and (track.number_since_match>5):
                 track.confirmflag = True
                 self.next_id +=1
         for k, detections in enumerate(detections): #没有匹配上轨迹的检测目标创建一个新的轨迹
@@ -83,7 +83,8 @@ class Tracker:
 
     def draw_tracks(self, img):
         for track in self.tracks:
-            track.draw(img)
+            if track.confirmflag:
+                track.draw(img)
 
 
 

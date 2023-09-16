@@ -62,9 +62,13 @@ def main1():
     cap.release()
 
 def main2():
-    video_path = "exp-2023-08-20_18-27-05/connect.mp4"
-    label_path = "exp-2023-08-20_18-27-05/labels"
-    file_name = "connect"
+    # video_path = "exp-2023-08-28_22-48-24/test2.mp4"
+    # label_path = "exp-2023-08-28_22-48-24/labels"
+    # file_name = "test2"
+
+    video_path = "exp-2023-09-14_11-22-20/7.52mm.mp4"
+    label_path = "exp-2023-09-14_11-22-20/labels"
+    file_name = "7.52mm"
     cap = cv2.VideoCapture(video_path)
     frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     print(f"Video FPS: {frame_number}")
@@ -74,7 +78,7 @@ def main2():
         os.mkdir('video_out')
     if SAVE_VIDEO:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(f'video_out/{current_time}.mp4', fourcc, 20, (1920, 1080))
+        out = cv2.VideoWriter(f'video_out/{current_time}.mp4', fourcc, 20, (2560, 1920))
 
     with open(os.path.join(label_path, file_name + "_" + str(1) + ".txt"), 'r') as f:
         content = f.readlines()
