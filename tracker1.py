@@ -31,7 +31,10 @@ class Tracker:
         detections = []
         for i, detection in enumerate(content):
             data = detection.replace('\n', "").split(" ")
-            detect_xywh = np.array(data[1:5], dtype="float")
+            # detect_xywh = np.array(data[1:5], dtype="float")
+            detect_xywh = np.array(data, dtype="float")
+            if len(detect_xywh) == 2:
+                detect_xywh = np.append(detect_xywh, [120, 120])
             detect_xyxy = xywh_to_xyxy(detect_xywh)
             detections.append(detect_xywh)
         return detections
@@ -74,7 +77,7 @@ class Tracker:
             track.update()  # 卡尔曼状态更新
             if track.lost_number>self.max_lost_number:  #超过一段时间没有匹配上则直接删除
                 self.tracks.remove(track)
-            if (not track.confirmflag) and (track.number_since_match>5):
+            if (not track.confirmflag) and (track.number_since_match>3):
                 track.confirmflag = True
                 self.next_id +=1
         for k, detections in enumerate(detections): #没有匹配上轨迹的检测目标创建一个新的轨迹

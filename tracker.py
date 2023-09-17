@@ -9,9 +9,11 @@ class  Tracks:
     def __init__(self, initial_state, initial_cov = np.eye(6), track_id=0):
         # 默认初始化状态为[x ,y, w, h, 0, 0]
         # initial_state =
-        self.X = np.append(initial_state,[0,0])
+        if len(initial_state) == 2:
+            self.X = np.append(initial_state, [30, 30, 0, 0])
+        self.X = np.append(initial_state, [0, 0])
         self.P =initial_cov
-        self.IOU_Threshold = 0.1 # 匹配时的阈值
+        self.IOU_Threshold = 0.02 # 匹配时的阈值
         self.target_box = xywh_to_xyxy(self.X[0:4]) #检测到匹配上的目标的框
         self.target_xywh = self.X[0:4]
         self.box_center = (int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
@@ -63,12 +65,18 @@ class  Tracks:
             self.Z[4::] = np.array([self.dx, self.dy])
             self.X, self.P = self.KF.predict(self.X, self.P)
             self.X, self.P = self.KF.update(self.X, self.P, self.Z)
+
+            self.X[2: 4] = [120, 120]
+
             self.number_since_match += 1
             self.lost_number = 0
         else:
             if len(self.trace_v_list) > 0:      #第一次检测到的时候也是匹配不到的
                 self.X[-2::] = self.trace_v_list[0]
             self.X, self.P = self.KF.predict(self.X, self.P)
+
+            self.X[2: 4] = [120, 120]
+
             self.number_since_match = 0
             self.lost_number += 1
         self.xywh = self.X[0:4]

@@ -66,9 +66,9 @@ def main2():
     # label_path = "exp-2023-08-28_22-48-24/labels"
     # file_name = "test2"
 
-    video_path = "exp-2023-09-14_11-22-20/7.52mm.mp4"
-    label_path = "exp-2023-09-14_11-22-20/labels"
-    file_name = "7.52mm"
+    video_path = "test100_6mm/connect.avi"
+    label_path = "test100_6mm/point_center"
+    file_name = ""
     cap = cv2.VideoCapture(video_path)
     frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     print(f"Video FPS: {frame_number}")
@@ -80,12 +80,14 @@ def main2():
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(f'video_out/{current_time}.mp4', fourcc, 20, (2560, 1920))
 
-    with open(os.path.join(label_path, file_name + "_" + str(1) + ".txt"), 'r') as f:
+    # with open(os.path.join(label_path, file_name + "_" + str(1) + ".txt"), 'r') as f:
+    with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r') as f:
         content = f.readlines()
         tracker = Tracker(content)
     mat = tracker.iou_mat(content)
 
-    frame_counter = 2
+    # frame_counter = 2
+    frame_counter = 1
     while (True):
         print(f"当前帧数：{frame_counter}")
         if frame_counter > frame_number:
@@ -93,7 +95,8 @@ def main2():
         ret, frame = cap.read()
         if not ret:
             break
-        label_file_path = os.path.join(label_path, file_name + "_" + str(frame_counter) + ".txt")
+        # label_file_path = os.path.join(label_path, file_name + "_" + str(frame_counter) + ".txt")
+        label_file_path = os.path.join(label_path, file_name + str(frame_counter) + ".txt")
         if not os.path.exists(label_file_path):
             with open(label_file_path, "w") as f:
                 pass
