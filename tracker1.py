@@ -11,6 +11,7 @@ class Tracker:
     def __init__(self, detections):
         """
         初始化时需要读入第一帧文件的信息。[X1, X2, ...],X1.shape = (6,)
+        追踪器类，用于追踪
         """
         self.tracks = []
         detections = self.content2detections(detections)
