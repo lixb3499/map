@@ -66,9 +66,9 @@ def main2():
     # label_path = "exp-2023-08-28_22-48-24/labels"
     # file_name = "test2"
 
-    video_path = "exp-2023-10-09_23-45-18/Rec_20230918_163240_163338.mp4"
-    label_path = "exp-2023-10-09_23-45-18/labels"
-    file_name = "Rec_20230918_163240_163338"
+    video_path = "exp-2023-08-20_18-27-05/connect.mp4"
+    label_path = "exp-2023-08-20_18-27-05/labels"
+    file_name = "connect"
     cap = cv2.VideoCapture(video_path)
     frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     print(f"Video FPS: {frame_number}")
@@ -78,7 +78,9 @@ def main2():
         os.mkdir('video_out')
     if SAVE_VIDEO:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(f'video_out/{current_time}.mp4', fourcc, 20, (2560, 1920))
+        frame_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        frame_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        out = cv2.VideoWriter(f'video_out/{current_time}.mp4', fourcc, 20, (int(frame_width), int(frame_height)))
 
     ret, frame = cap.read()
 
@@ -104,7 +106,7 @@ def main2():
             # track.predict()
             tracker.update(content)
         tracker.draw_tracks(frame)
-        cv2.putText(frame, "ALL BOXES(Green)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
+        cv2.putText(frame, "ALL BOXES(Yellow)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 70, 255), 2)
         cv2.putText(frame, "TRACKED BOX(Red)", (25, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
         cv2.putText(frame, "Last frame best estimation(White)", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255),
                     2)
