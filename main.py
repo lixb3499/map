@@ -68,7 +68,7 @@ def main2():
 
     video_path = "test100_6mm/connect.avi"
     label_path = "test100_6mm/point_center"
-    file_name = ""
+    file_name = ""  #label文件数字前的
     cap = cv2.VideoCapture(video_path)
     frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     print(f"Video FPS: {frame_number}")
@@ -87,7 +87,7 @@ def main2():
     mat = tracker.iou_mat(content)
 
     # frame_counter = 2
-    frame_counter = 1
+    frame_counter = 1   #这里由视频label文件由0还是1开始命名确定
     while (True):
         print(f"当前帧数：{frame_counter}")
         if frame_counter > frame_number:
