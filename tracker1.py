@@ -8,12 +8,12 @@ from kalmanfilter import KalmanFilter
 from scipy.optimize import linear_sum_assignment
 
 class Tracker:
-    def __init__(self, detections):
+    def __init__(self, content):
         """
         初始化时需要读入第一帧文件的信息。[X1, X2, ...],X1.shape = (6,)
         """
         self.tracks = []
-        detections = self.content2detections(detections)
+        detections = self.content2detections(content)
         for i, detection in enumerate(detections):
             self.tracks.append(Tracks(detection, track_id=i))
         for track in self.tracks:   # 第一次检测到的目标直接设置为确定态

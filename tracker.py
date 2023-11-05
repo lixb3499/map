@@ -27,6 +27,7 @@ class  Tracks:
         self.lost_number = 0
         self.number_since_match = 0
         self.confirmflag = False  # 轨迹需要检测到三帧以上才能变为确定的一条轨迹
+        self.parking_id = None # 该轨迹在地图中对应的车位
 
     # def predict(self):
     #     self.X, self.P = self.KF.predict(self.X, self.P)
