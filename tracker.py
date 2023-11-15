@@ -114,4 +114,5 @@ class  Tracks:
             cv2.putText(img, "Lost", (int(self.target_box[0]), int(self.target_box[1] - 5)),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.7, (255, 255, 0), 2)
-        plot_one_box(self.target_box, img, color=(255, 255, 255), target=self.max_iou_matched)
+        plot_one_box(self.target_box, img, color=(255, 0, 255), target=self.max_iou_matched)
+

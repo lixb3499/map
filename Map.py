@@ -12,14 +12,19 @@ class Map(Tracker):
     '''
     class Map inherit from class Tracker
     '''
-    def __init__(self, content, parking_file = ''):
+    def __init__(self, content, parking_inf_list = []):
         super(Map, self).__init__(content)
         '''
         parking_id由Map分配
         :param content: 第一帧检测到的信息，用于初始化跟踪器
         :param parking_file: 拿到的地图的位置信息的文件
         '''
-        parking_list = []
+        # self.parking_list = [Parking(1, [100, 100, 2, 2]), Parking(2, [200, 200, 2, 3])]
+        self.parking_list = []
+        for i, xyxy in enumerate(parking_inf_list):
+            self.parking_list.append(Parking(i, xyxy))
+
+    # def dis_matrix(self):
 
 
 
@@ -27,13 +32,13 @@ class Map(Tracker):
 
 class Parking:
 
-    def __init__(self, parking_id, xywh, havecar=False):
+    def __init__(self, parking_id, xyxy, havecar=False):
         '''
         :param park_id:每个车位id不同,parking_id由Map分配
-        :param xywh:车位的位置
+        :param xyxy:车位的位置
         :param havecar:是否u车的标志
         '''
-        self.id, self.xywh, self.havecar = parking_id, xywh, havecar
+        self.id, self.xyxy, self.havecar = parking_id, xyxy, havecar
 
     def update(self):
         pass

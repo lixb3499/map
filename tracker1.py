@@ -35,6 +35,9 @@ class Tracker:
             detect_xywh = np.array(data, dtype="float")
             if len(detect_xywh) == 2:
                 detect_xywh = np.append(detect_xywh, [120, 120])
+            if len(detect_xywh) == 3:
+                detect_xywh =detect_xywh.pop()
+
             detect_xyxy = xywh_to_xyxy(detect_xywh)
             detections.append(detect_xywh)
         return detections
@@ -64,6 +67,9 @@ class Tracker:
     def update(self, content):
         mat = self.iou_mat(content)
         detections = self.content2detections(content)
+        # if np.all(mat == 0):
+        #     track_indices, det_indices = ([], [])
+        # else:
         track_indices, det_indices = self.iou_match(mat)
         for i, track in enumerate(self.tracks):     #   给匹配上的轨迹改变标记
             if i not in track_indices:
@@ -77,12 +83,13 @@ class Tracker:
             track.update()  # 卡尔曼状态更新
             if track.lost_number>self.max_lost_number:  #超过一段时间没有匹配上则直接删除
                 self.tracks.remove(track)
-            if (not track.confirmflag) and (track.number_since_match>3):
+            if (not track.confirmflag) and (track.number_since_match>0):
                 track.confirmflag = True
-                self.next_id +=1
+                # self.next_id +=1  #注释掉这行应该解决了给不同目标分配同一个id的问题
         for k, detections in enumerate(detections): #没有匹配上轨迹的检测目标创建一个新的轨迹
             if k not in det_indices:
                 self.tracks.append(Tracks(detections, track_id=self.next_id))
+                self.next_id += 1
 
     def draw_tracks(self, img):
         for track in self.tracks:

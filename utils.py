@@ -1,5 +1,5 @@
 import cv2
-
+from matplotlib import patches
 def xyxy_to_xywh(xyxy):
     center_x = (xyxy[0] + xyxy[2]) / 2
     center_y = (xyxy[1] + xyxy[3]) / 2
@@ -14,6 +14,21 @@ def plot_one_box(xyxy, img, color=(0, 200, 0), target=False):
         color = (0, 0, 255)
     cv2.rectangle(img, xy1, xy2, color, 1, cv2.LINE_AA)  # filled
 
+def plot_box_map(ax, box_coords):
+    """
+    在指定的画布上画出矩形框。
+
+    Parameters:
+        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
+        box_coords (tuple): 矩形框的坐标，形式为 (x1, y1, x2, y2)
+    """
+    x1, y1, x2, y2 = box_coords
+
+    # 绘制矩形框
+    rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='r', facecolor='none')
+
+    # 将矩形框添加到坐标轴
+    ax.add_patch(rect)
 
 def updata_trace_list(box_center, trace_list, max_list_len=50):
     if len(trace_list) <= max_list_len:
@@ -91,6 +106,7 @@ def xywh_to_xyxy(xywh):
     y2 = xywh[1] + xywh[3] // 2
 
     return [x1, y1, x2, y2]
+
 
 
 if __name__ == "__main__":
