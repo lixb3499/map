@@ -67,10 +67,11 @@ class Tracker:
     def update(self, content):
         mat = self.iou_mat(content)
         detections = self.content2detections(content)
-        # if np.all(mat == 0):
-        #     track_indices, det_indices = ([], [])
-        # else:
-        track_indices, det_indices = self.iou_match(mat)
+        if np.all(mat == 0):
+            track_indices, det_indices = ([], [])
+        else:
+            track_indices, det_indices = self.iou_match(mat)
+        # track_indices, det_indices = self.iou_match(mat)
         for i, track in enumerate(self.tracks):     #   给匹配上的轨迹改变标记
             if i not in track_indices:
                 track.max_iou_matched = False

@@ -183,7 +183,7 @@ video_size = (width, height)
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
 # 创建视频写入对象
-video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (900, 1400))
+video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
 
 mat = tracker.iou_mat(content)
 
@@ -218,13 +218,18 @@ while (True):
     # if SAVE_VIDEO:
     #     out.write(frame)
 
-    video_writer.write(frame)
+    # video_writer.write(frame)
+    success= video_writer.write(frame)
+    if not success:
+        print("Error writing frame to video.")
     frame_counter = frame_counter + 1
     if cv2.waitKey(10) & 0xFF == ord('q'):
         break
     plt.close()
 
 video_writer.release()
+# if not success:
+#     print("Error writing frame to video.")
 
 
 
