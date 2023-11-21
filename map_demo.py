@@ -16,47 +16,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 
-# points3D = [[\
-#             [0,-2.4,0],[2.4,-2.4,0],[-2.4,-2.4,0], [4.8, -2.4, 0], \
-#             [0,-7.4,0],[2.4,-7.4,0],[-2.4,-7.4,0], [4.8, -7.4, 0]
-#             ],
-#             [ \
-#             [0, 2.4, 0], [2.4, 2.4, 0], [-2.4, 2.4, 0], [4.8, 2.4, 0], \
-#             [0, 7.4, 0], [2.4, 7.4, 0], [-2.4, 7.4, 0], [4.8, 7.4, 0]
-#             ],
-#             [ \
-#             [-3.8, 2.4, 0], [-6.2, 2.4, 0], [-8.6, 2.4, 0], [-11, 2.4, 0], \
-#             [-3.8, 7.4, 0], [-6.2, 7.4, 0], [-8.6, 7.4, 0], [-11, 7.4, 0]
-#             ],
-#             [ \
-#             [-3.8, -2.4, 0], [-6.2, -2.4, 0], [-8.6, -2.4, 0], [-11, -2.4, 0], \
-#             [-3.8, -7.4, 0], [-6.2, -7.4, 0], [-8.6, -7.4, 0], [-11, -7.4, 0]
-#             ]]
-#
-# points3D = [points3D]
-# points3D = np.array(points3D, np.float32)
-#
-#
-# p1 = []
-# # fig, ax = plt.subplots()
-# # # sc, = plt.plot([], [], 'ro', markersize=5)
-# # ax.set_xlim([-15, 10])
-# # ax.set_ylim([-10, 10])
-#
-# L = int(points3D.shape[2]/2)
-# H = int(points3D.shape[1])
-# for j in range(H):
-#     for i in range(L-1):
-#         fig, ax = plt.subplots()
-#         ax.set_xlim([-15, 10])
-#         ax.set_ylim([-10, 10])
-#         plt.plot([points3D[0,j,i,0],points3D[0,j,i+L,0]],[points3D[0,j,i,1],points3D[0,j,i+L,1]],'b')
-#         # plt.plot([points3D[0,j,i,0],points3D[0,j,i+1,0]],[points3D[0,j,i,1],points3D[0,j,i+1,1]],'b')
-#         # plt.plot([points3D[0,j,i+L,0],points3D[0,j,i+L+1,0]],[points3D[0,j,i+L,1],points3D[0,j,i+L+1,1]],'b')
-#         # plt.plot([points3D[0,j,i+1,0],points3D[0,j,i+L+1,0]],[points3D[0,j,i+1,1],points3D[0,j,i+L+1,1]],'b')
-#
-#         plt.show()
-
 def coord_to_pixel(ax, coord):
     """
     将坐标中的点映射到画布中的像素点。
@@ -81,17 +40,14 @@ file_name = ''
 save_txt = 'save_txt'
 
 # 设置视频相关参数
-video_filename = 'output_video.mp4'
-frame_rate = 6
-# duration = 10  # 视频时长（秒）
-
-SAVE_VIDEO = True
+SAVE_VIDEO = False
 current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 if not os.path.exists('video_out'):
     os.mkdir('video_out')
-# if SAVE_VIDEO:
-#     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-#     out = cv2.VideoWriter(f'video_out/{current_time}.avi', fourcc, 6, (640, 480))
+video_filename = os.path.join('video_out', 'exp' + current_time + '.mp4')
+frame_rate = 6
+# duration = 10  # 视频时长（秒）
+
 def content2detections(content, ax):
     """
     从读取的文件中解析出检测到的目标信息
@@ -115,14 +71,6 @@ fig, ax = plt.subplots(figsize=(14, 9))
 ax.set_xlim([-15, 10])
 ax.set_ylim([-10, 10])
 
-# for i in range(318):
-#     with open(os.path.join(label_path, file_name + '_' + str(i) + ".txt"), 'r') as f:
-#         content = f.readlines()
-#         detection = content2detections(content, ax)
-#     with open(save_txt + f'/{i}.txt', 'w') as file:
-#         for item in detection:
-#             # 将元组转换为字符串，并写入文件
-#             file.write(f"{item[0]} {item[1]}\n")
 
 def plot_box_map(ax, box_coords):
     """
@@ -139,6 +87,7 @@ def plot_box_map(ax, box_coords):
 
     # 将矩形框添加到坐标轴
     ax.add_patch(rect)
+
 
 p1 = [-11, -2.4, -8.6, -7.4]
 p2 = [-8.6, -2.4, -6.2, -7.4]
@@ -182,9 +131,6 @@ video_size = (width, height)
 # 设置视频编解码器
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
-# 创建视频写入对象
-video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
-
 mat = tracker.iou_mat(content)
 
 frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
@@ -215,21 +161,16 @@ while (True):
                 2)
 
     cv2.imshow('track', frame)
-    # if SAVE_VIDEO:
-    #     out.write(frame)
-
-    # video_writer.write(frame)
-    success= video_writer.write(frame)
-    if not success:
-        print("Error writing frame to video.")
+    if SAVE_VIDEO:
+        # 创建视频写入对象
+        video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
+        video_writer.write(frame)
     frame_counter = frame_counter + 1
-    if cv2.waitKey(10) & 0xFF == ord('q'):
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
     plt.close()
 
 video_writer.release()
-# if not success:
-#     print("Error writing frame to video.")
 
 
 

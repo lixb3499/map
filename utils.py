@@ -1,5 +1,6 @@
 import cv2
 from matplotlib import patches
+import numpy as np
 def xyxy_to_xywh(xyxy):
     center_x = (xyxy[0] + xyxy[2]) / 2
     center_y = (xyxy[1] + xyxy[3]) / 2
@@ -108,6 +109,54 @@ def xywh_to_xyxy(xywh):
     return [x1, y1, x2, y2]
 
 
+def coord_to_pixel(ax, coord):
+    """
+    将坐标中的点映射到画布中的像素点。
+
+    Parameters:
+        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
+        coord (tuple): 坐标中的点，形式为 (x, y)
+
+    Returns:
+        tuple: 画布中的像素点，形式为 (pixel_x, pixel_y)
+    """
+    x, y = coord
+    pixel_x, pixel_y = ax.transData.transform_point((x, y))
+    return int(pixel_x), int(pixel_y)
+
+
+def plot_box_map(ax, box_coords):
+    """
+    在指定的画布上画出矩形框。
+
+    Parameters:
+        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
+        box_coords (tuple): 矩形框的坐标，形式为 (x1, y1, x2, y2)
+    """
+    x1, y1, x2, y2 = box_coords
+
+    # 绘制矩形框
+    rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='g', facecolor='none')
+
+    # 将矩形框添加到坐标轴
+    ax.add_patch(rect)
+
+def content2detections(content, ax):
+    """
+    从读取的文件中解析出检测到的目标信息
+    :param content: readline返回的列表
+    :return: [X1, X2, ...],X1.shape = (6,)
+    """
+    detections = []
+    for i, detection in enumerate(content):
+        data = detection.replace('\n', "").split(" ")
+        # detect_xywh = np.array(data[1:5], dtype="float")
+        detect_xywh = np.array(data, dtype="float")
+        detect_xywh = np.delete(detect_xywh, -1)
+
+        detect_xywh = coord_to_pixel(ax, detect_xywh)
+        detections.append(detect_xywh)
+    return detections
 
 if __name__ == "__main__":
     box1 = [100, 100, 200, 200]
