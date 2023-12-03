@@ -1,6 +1,8 @@
 import cv2
 from matplotlib import patches
 import numpy as np
+
+
 def xyxy_to_xywh(xyxy):
     center_x = (xyxy[0] + xyxy[2]) / 2
     center_y = (xyxy[1] + xyxy[3]) / 2
@@ -8,12 +10,14 @@ def xyxy_to_xywh(xyxy):
     h = xyxy[3] - xyxy[1]
     return (center_x, center_y, w, h)
 
+
 def plot_one_box(xyxy, img, color=(0, 200, 0), target=False):
     xy1 = (int(xyxy[0]), int(xyxy[1]))
     xy2 = (int(xyxy[2]), int(xyxy[3]))
     if target:
         color = (0, 0, 255)
     cv2.rectangle(img, xy1, xy2, color, 1, cv2.LINE_AA)  # filled
+
 
 def plot_box_map(ax, box_coords):
     """
@@ -30,6 +34,7 @@ def plot_box_map(ax, box_coords):
 
     # 将矩形框添加到坐标轴
     ax.add_patch(rect)
+
 
 def updata_trace_list(box_center, trace_list, max_list_len=50):
     if len(trace_list) <= max_list_len:
@@ -101,8 +106,8 @@ def cal_distance(box1, box2):
 
 
 def xywh_to_xyxy(xywh):
-    x1 = xywh[0] - xywh[2]//2
-    y1 = xywh[1] - xywh[3]//2
+    x1 = xywh[0] - xywh[2] // 2
+    y1 = xywh[1] - xywh[3] // 2
     x2 = xywh[0] + xywh[2] // 2
     y2 = xywh[1] + xywh[3] // 2
 
@@ -141,6 +146,7 @@ def plot_box_map(ax, box_coords):
     # 将矩形框添加到坐标轴
     ax.add_patch(rect)
 
+
 def content2detections(content, ax):
     """
     从读取的文件中解析出检测到的目标信息
@@ -157,6 +163,43 @@ def content2detections(content, ax):
         detect_xywh = coord_to_pixel(ax, detect_xywh)
         detections.append(detect_xywh)
     return detections
+
+
+def vector_norm(vector):
+    """
+    计算向量的二范数（Euclidean norm）。
+
+    Parameters:
+        vector (list or numpy.ndarray): 输入的向量。
+
+    Returns:
+        float: 向量的二范数。
+    """
+    # 将输入的向量转换为NumPy数组
+    vector = np.array(vector)
+
+    # 计算向量的二范数
+    norm = np.linalg.norm(vector, ord=2)
+
+    return np.array(norm)
+
+def vector_norm_ax1(vector):
+    """
+    计算向量的二范数（Euclidean norm）。
+
+    Parameters:
+        vector (list or numpy.ndarray): 输入的向量。
+
+    Returns:
+        float: 向量的二范数。
+    """
+    # 将输入的向量转换为NumPy数组
+    vector = np.array(vector)
+
+    # 计算向量的二范数
+    norm = np.linalg.norm(vector, ord=2, axis=1)
+
+    return np.array(norm)
 
 if __name__ == "__main__":
     box1 = [100, 100, 200, 200]

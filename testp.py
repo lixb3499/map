@@ -3,6 +3,7 @@ from matplotlib import patches
 import utils
 import cv2
 import numpy as np
+
 #
 #
 # fig, ax = plt.subplots()
@@ -144,6 +145,7 @@ import numpy as np
 import cv2
 import numpy as np
 
+
 def coord_to_pixel(ax, coord):
     """
     将坐标中的点映射到画布中的像素点。
@@ -158,6 +160,7 @@ def coord_to_pixel(ax, coord):
     x, y = coord
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
     return int(pixel_x), int(pixel_y)
+
 
 def distance_to_pixel(ax, distance):
     """
@@ -201,6 +204,7 @@ def plot_box_map(ax, box_coords):
     # 将矩形框添加到坐标轴
     ax.add_patch(rect)
 
+
 p1 = [-11, -2.4, -8.6, -7.4]
 p2 = [-8.6, -2.4, -6.2, -7.4]
 p3 = [-6.2, -2.4, -3.8, -7.4]
@@ -217,13 +221,13 @@ p10 = [-2.4, 2.4, 0, 7.4]
 p11 = [0, 2.4, 2.4, 7.4]
 p12 = [2.4, 2.4, 4.8, 7.4]
 
-P = [p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12]
+P = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 for p in P:
     plot_box_map(ax, p)
 
 # 在坐标轴上绘制一个圆
-# circle = plt.Circle((0, 0), 2, color='blue', fill=False)
-# ax.add_patch(circle)
+circle = plt.Circle((0, 0), 2, color='blue', fill=False)
+ax.add_patch(circle)
 
 # plt.show()
 # 获取图形的坐标轴范围
@@ -241,13 +245,55 @@ img_array = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
 img_array = img_array.reshape(canvas.get_width_height()[::-1] + (3,))
 
 # 在图像数组上画出像素层面的圆
-cv2.circle(img_array, pixel_center, distance_to_pixel(ax, 2), (0, 255, 255), 2)  # 2 * fig.dpi 是半径，(0, 0, 255)是颜色 (BGR格式)
+cv2.circle(img_array, pixel_center, distance_to_pixel(ax, 2), (0, 255, 255),
+           2)  # 2 * fig.dpi 是半径，(0, 0, 255)是颜色 (BGR格式)
 
 # 显示图像数组
-cv2.imshow('Pixel Circle on Matplotlib', img_array)
+# cv2.imshow('Pixel Circle on Matplotlib', img_array)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 plt.close()
 
 
+def unit_length_to_pixels(ax, unit_length_x, unit_length_y):
+    """
+    将坐标轴上的单位长度转换为画布上的像素点个数。
 
+    Parameters:
+        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
+        unit_length_x (float): 横坐标轴上的单位长度
+        unit_length_y (float): 纵坐标轴上的单位长度
+
+    Returns:
+        tuple: 横纵坐标轴上的单位长度对应的像素点个数，形式为 (pixels_x, pixels_y)
+    """
+    # 选择两个相邻的点在横纵坐标轴上的坐标，计算它们之间的像素距离
+    point1 = (0, 0)
+    point2 = (unit_length_x, unit_length_y)
+
+    pixel1 = coord_to_pixel(ax, point1)
+    pixel2 = coord_to_pixel(ax, point2)
+
+    print(pixel1, pixel2)
+    pixels_x = abs(pixel2[0] - pixel1[0])
+    pixels_y = abs(pixel2[1] - pixel1[1])
+
+    return pixels_x, pixels_y
+
+
+# 创建 Matplotlib 图形和坐标轴
+fig, ax = plt.subplots(figsize=(14, 9))
+ax.set_xlim([-15, 10])
+ax.set_ylim([-10, 10])
+
+# 定义单位长度
+unit_length_x = 1
+unit_length_y = 1
+
+# 将单位长度转换为像素点个数
+pixels_x, pixels_y = unit_length_to_pixels(ax, unit_length_x, unit_length_y)
+
+print(f"横坐标轴上 {unit_length_x} 单位长度对应 {pixels_x} 像素点")
+print(f"纵坐标轴上 {unit_length_y} 单位长度对应 {pixels_y} 像素点")
+
+print(utils.vector_norm([2, 2]))

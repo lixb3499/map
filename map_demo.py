@@ -31,21 +31,26 @@ def coord_to_pixel(ax, coord):
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
     return int(pixel_x), int(pixel_y)
 
+
 # label_path = "exp-11-13/saved_points"
 # file_name = 'world_coords'
 # save_txt = 'save_txt'
 
-label_path = "exp-11-13/saved_txt"
+label_path = "exp-11-27/saved_txt"
 file_name = ''
 save_txt = 'save_txt'
 
 # 设置视频相关参数
-SAVE_VIDEO = False
+SAVE_VIDEO = True
 current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 if not os.path.exists('video_out'):
     os.mkdir('video_out')
 video_filename = os.path.join('video_out', 'exp' + current_time + '.mp4')
 frame_rate = 6
+filelist = os.listdir(label_path)
+frame_number = len(filelist)
+
+
 # duration = 10  # 视频时长（秒）
 
 def content2detections(content, ax):
@@ -64,6 +69,7 @@ def content2detections(content, ax):
         detect_xywh = coord_to_pixel(ax, detect_xywh)
         detections.append(detect_xywh)
     return detections
+
 
 # 创建Matplotlib画布和坐标轴
 fig, ax = plt.subplots(figsize=(14, 9))
@@ -105,10 +111,9 @@ p10 = [-2.4, 2.4, 0, 7.4]
 p11 = [0, 2.4, 2.4, 7.4]
 p12 = [2.4, 2.4, 4.8, 7.4]
 
-P = [p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12]
+P = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 for p in P:
     plot_box_map(ax, p)
-
 
 with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r') as f:
     content = f.readlines()
@@ -131,10 +136,13 @@ video_size = (width, height)
 # 设置视频编解码器
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
+if SAVE_VIDEO:
+    # 创建视频写入对象
+    video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
+
 mat = tracker.iou_mat(content)
 
 frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
-frame_number = 318
 while (True):
     fig, ax = plt.subplots(figsize=(14, 9))
     canvas.draw()
@@ -162,8 +170,6 @@ while (True):
 
     cv2.imshow('track', frame)
     if SAVE_VIDEO:
-        # 创建视频写入对象
-        video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
         video_writer.write(frame)
     frame_counter = frame_counter + 1
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -171,28 +177,6 @@ while (True):
     plt.close()
 
 video_writer.release()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 """
 # 循环绘制图形并保存为视频
@@ -227,6 +211,3 @@ video_writer.release()
 # 显示Matplotlib图形（可选）
 plt.show()
 """
-
-
-

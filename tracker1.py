@@ -7,6 +7,7 @@ from tracker import Tracks
 from kalmanfilter import KalmanFilter
 from scipy.optimize import linear_sum_assignment
 
+
 class Tracker:
     def __init__(self, content):
         """
@@ -14,13 +15,15 @@ class Tracker:
         """
         self.tracks = []
         detections = self.content2detections(content)
+        i = -1  # 这里先定义i的目的是防止第一帧里面没有目标导致下面的next_id出错
         for i, detection in enumerate(detections):
             self.tracks.append(Tracks(detection, track_id=i))
-        for track in self.tracks:   # 第一次检测到的目标直接设置为确定态
+        for track in self.tracks:  # 第一次检测到的目标直接设置为确定态
             track.confirmflag = True
-        self.next_id = i+1
-        self.max_lost_number = 100
+        self.next_id = i + 1
+        self.max_lost_number = 10
         self.KF = KalmanFilter()
+        self.confirm_frame = 3  # 设为确定态所需要连续匹配到的帧数
 
     def content2detections(self, content):
         """
@@ -34,9 +37,9 @@ class Tracker:
             # detect_xywh = np.array(data[1:5], dtype="float")
             detect_xywh = np.array(data, dtype="float")
             if len(detect_xywh) == 2:
-                detect_xywh = np.append(detect_xywh, [120, 120])
+                detect_xywh = np.append(detect_xywh, [80, 80])
             if len(detect_xywh) == 3:
-                detect_xywh =detect_xywh.pop()
+                detect_xywh = detect_xywh.pop()
 
             detect_xyxy = xywh_to_xyxy(detect_xywh)
             detections.append(detect_xywh)
@@ -58,11 +61,8 @@ class Tracker:
         return mat
 
     def iou_match(self, mat):
-        tracks_indices, det_indices = linear_sum_assignment(-1*mat)
+        tracks_indices, det_indices = linear_sum_assignment(-1 * mat)
         return tracks_indices, det_indices
-
-
-
 
     def update(self, content):
         mat = self.iou_mat(content)
@@ -72,22 +72,22 @@ class Tracker:
         else:
             track_indices, det_indices = self.iou_match(mat)
         # track_indices, det_indices = self.iou_match(mat)
-        for i, track in enumerate(self.tracks):     #   给匹配上的轨迹改变标记
+        for i, track in enumerate(self.tracks):  # 给匹配上的轨迹改变标记
             if i not in track_indices:
                 track.max_iou_matched = False
                 track.number_since_match = 0
             else:
                 track.max_iou_matched = True
-        for track_indice, det_indice in zip(track_indices, det_indices):    #再验证是否满足IOU匹配
+        for track_indice, det_indice in zip(track_indices, det_indices):  # 再验证是否满足IOU匹配
             self.tracks[track_indice].iou_match(detections[det_indice])
-        for j, track in enumerate(self.tracks): #对每条轨迹进行更新
+        for j, track in enumerate(self.tracks):  # 对每条轨迹进行更新
             track.update()  # 卡尔曼状态更新
-            if track.lost_number>self.max_lost_number:  #超过一段时间没有匹配上则直接删除
+            if track.lost_number > self.max_lost_number:  # 超过一段时间没有匹配上则直接删除
                 self.tracks.remove(track)
-            if (not track.confirmflag) and (track.number_since_match>0):
+            if (not track.confirmflag) and (track.number_since_match > self.confirm_frame):
                 track.confirmflag = True
                 # self.next_id +=1  #注释掉这行应该解决了给不同目标分配同一个id的问题
-        for k, detections in enumerate(detections): #没有匹配上轨迹的检测目标创建一个新的轨迹
+        for k, detections in enumerate(detections):  # 没有匹配上轨迹的检测目标创建一个新的轨迹
             if k not in det_indices:
                 self.tracks.append(Tracks(detections, track_id=self.next_id))
                 self.next_id += 1
@@ -96,6 +96,3 @@ class Tracker:
         for track in self.tracks:
             if track.confirmflag:
                 track.draw(img)
-
-
-
