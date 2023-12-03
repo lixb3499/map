@@ -8,12 +8,13 @@ from kalmanfilter import KalmanFilter
 
 
 class Tracks:
-    def __init__(self, initial_state, initial_cov=np.eye(6), track_id=0):
+    def __init__(self, initial_state, initial_cov=np.eye(6), track_id=0, framerate = 6):
         # 默认初始化状态为[x ,y, w, h, 0, 0]
         # initial_state =
         self.h = 80  # 用中心点初始化时设置默认边框大小
         if len(initial_state) == 2:
             self.X = np.append(initial_state, [self.h, self.h, 0, 0])
+        self.frame_rate = framerate
         self.X = np.append(initial_state, [0, 0])
         self.P = initial_cov
         self.IOU_Threshold = 0.1  # 匹配时的阈值
@@ -35,6 +36,7 @@ class Tracks:
         self.confirmflag = False  # 轨迹需要检测到三帧以上才能变为确定的一条轨迹
         self.parking_id = None  # 该轨迹在地图中对应的车位
         self.v_Threshold = 2
+        self.stoptime = 0  #滞留时间，判断为stop的帧数除以帧率
 
     # def predict(self):
     #     self.X, self.P = self.KF.predict(self.X, self.P)
@@ -100,18 +102,19 @@ class Tracks:
         self.target_box = xywh_to_xyxy(self.X[0:4])
         self.box_center = (
             int((self.target_box[0] + self.target_box[2]) // 2), int((self.target_box[1] + self.target_box[3]) // 2))
-        self.updata_trace_list(50)
-        self.updata_v_list(2)
+        self.update_trace_list(50)
+        self.update_v_list(2)
         self.v_average = np.mean(self.trace_v_list_value)
+        self.updatestoptime(self.frame_rate)
 
-    def updata_trace_list(self, max_trace_number=50):
+    def update_trace_list(self, max_trace_number=50):
         if len(self.trace_point_list) <= max_trace_number:
             self.trace_point_list.append(self.box_center)
         else:
             self.trace_point_list.pop(0)
             self.trace_point_list.append(self.box_center)
 
-    def updata_v_list(self, max_v_number=5):
+    def update_v_list(self, max_v_number=5):
         if len(self.trace_v_list) <= max_v_number:
             if hasattr(self, 'dx'):
                 self.trace_v_list.append([self.dx / 43, self.dy / 35])
@@ -122,20 +125,23 @@ class Tracks:
             self.trace_v_list.append([self.dx / 43, self.dy / 35])
             self.trace_v_list_value.append(vector_norm([self.dx / 43, self.dy / 35]))
 
+    def updatestoptime(self, frame_rate):
+        self.stoptime = self.stoptime + 1/6
+
     def draw(self, img):
         draw_trace(img, self.trace_point_list)
         if self.ifstop(self.v_Threshold):
             if self.max_iou_matched:
                 # cv2.putText(img, f"Tracking  ID={self.track_id}, V={21.6*vector_norm(self.trace_v_list[-1]):.2f}km/h", (int(self.target_box[0]-30), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
                 #             0.7, (255, 0, 0), 2)
-                cv2.putText(img, f"Tracking  ID={self.track_id}, stop",
+                cv2.putText(img, f"Tracking  ID={self.track_id}, stop, t = {self.stoptime:.2f}s",
                             (int(self.target_box[0] - 30), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (255, 0, 0), 2)
 
                 # draw_trace(img, self.trace_point_list)
             else:
                 # pass
-                cv2.putText(img, f"Lost ID={self.track_id}, V={21.6 * vector_norm(self.trace_v_list[-1]):.2f}km/h",
+                cv2.putText(img, f"Lost ID={self.track_id}, stop, t = {self.stoptime:.2f}s",
                             (int(self.target_box[0] - 30), int(self.target_box[1] - 5)),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (255, 255, 0), 2)
