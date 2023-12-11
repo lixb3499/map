@@ -1,19 +1,17 @@
 import os
 import cv2
-import numpy as np
-from utils import plot_one_box, cal_iou, xyxy_to_xywh, xywh_to_xyxy, updata_trace_list, draw_trace
+from utils import plot_one_box, cal_iou, xyxy_to_xywh, xywh_to_xyxy, updata_trace_list, draw_trace, intersect, ccw
 import datetime
 from tracker import Tracks
 from tracker1 import Tracker
 from kalmanfilter import KalmanFilter
 from scipy.optimize import linear_sum_assignment
-from matplotlib import pyplot as plt
-
 from matplotlib import patches
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from Map import Map
 
 
 def coord_to_pixel(ax, coord):
@@ -29,6 +27,9 @@ def coord_to_pixel(ax, coord):
     """
     x, y = coord
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
+
+    # 反转y轴
+    pixel_y = 900 - pixel_y
     return int(pixel_x), int(pixel_y)
 
 
@@ -143,9 +144,10 @@ if SAVE_VIDEO:
 mat = tracker.iou_mat(content)
 
 frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
+count1 = 0
 while (True):
-    fig, ax = plt.subplots(figsize=(14, 9))
-    canvas.draw()
+    # fig, ax = plt.subplots(figsize=(14, 9))
+    # canvas.draw()
     img_array = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
     img_array = img_array.reshape(canvas.get_width_height()[::-1] + (3,))
     frame = img_array
@@ -163,9 +165,48 @@ while (True):
         # track.predict()
         tracker.update(content)
     tracker.draw_tracks(frame)
+
+    ####################################################计数
+    # 定义边界线
+    line1 = [coord_to_pixel(ax, (-11, 2.4)), coord_to_pixel(ax, (-11, -2.4))]  # 最左边的
+    line2 = [coord_to_pixel(ax, (4.8, 2.4)), coord_to_pixel(ax, (4.8, -2.4))]  # 最右边的
+    line3 = [coord_to_pixel(ax, (-2.4, 2.4)), coord_to_pixel(ax, (-2.4, -2.4))]  # 中间的
+    # cv2.line(frame, line1[0], line1[1], (0, 255, 255), 2)
+    cv2.line(frame, line2[0], line2[1], (0, 255, 255), 2)
+    cv2.line(frame, line3[0], line3[1], (0, 255, 255), 2)
+
+    already_counted_1 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line1的id记录在这个list中
+    already_counted_2 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line2的id记录在这个list中
+    already_counted_3 = []
+    for track in tracker.tracks:
+        if len(track.trace_point_list) < 2:
+            break
+        point = track.trace_point_list[-1]
+        previous_point = track.trace_point_list[-2]
+        # print(point, previous_point)
+
+        if intersect(point, previous_point, line3[0], line3[1]) and track.track_id not in already_counted_3:
+            already_counted_2.append(track.track_id)
+            cv2.line(frame, line3[0], line3[1], (0, 0, 255), 4)
+            print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
+            if point[0] > previous_point[0]:
+                count1 = count1 + 1
+            else:
+                count1 = count1 - 1
+
+        if intersect(point, previous_point, line2[0], line2[1]) and track.track_id not in already_counted_2:
+            already_counted_2.append(track.track_id)
+            cv2.line(frame, line2[0], line2[1], (0, 0, 255), 4)
+            print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
+            if point[0] > previous_point[0]:
+                count1 = count1 - 1
+            else:
+                count1 = count1 + 1
+        print(count1)
+
     cv2.putText(frame, "ALL BOXES(Green)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
     cv2.putText(frame, "TRACKED BOX(Red)", (25, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-    cv2.putText(frame, "Last frame best estimation(White)", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255),
+    cv2.putText(frame, f"count of area_1:    {count1}", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255),
                 2)
 
     cv2.imshow('track', frame)

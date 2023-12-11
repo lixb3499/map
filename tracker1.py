@@ -8,13 +8,39 @@ from kalmanfilter import KalmanFilter
 from scipy.optimize import linear_sum_assignment
 
 
+def iou_match(mat):
+    tracks_indices, det_indices = linear_sum_assignment(-1 * mat)
+    return tracks_indices, det_indices
+
+
+def content2detections(content):
+    """
+    从读取的文件中解析出检测到的目标信息
+    :param content: readline返回的列表
+    :return: [X1, X2, ...],X1.shape = (6,)
+    """
+    detections = []
+    for i, detection in enumerate(content):
+        data = detection.replace('\n', "").split(" ")
+        # detect_xywh = np.array(data[1:5], dtype="float")
+        detect_xywh = np.array(data, dtype="float")
+        if len(detect_xywh) == 2:
+            detect_xywh = np.append(detect_xywh, [80, 80])
+        if len(detect_xywh) == 3:
+            detect_xywh = detect_xywh.pop()
+
+        detect_xyxy = xywh_to_xyxy(detect_xywh)
+        detections.append(detect_xywh)
+    return detections
+
+
 class Tracker:
     def __init__(self, content):
         """
         初始化时需要读入第一帧文件的信息。[X1, X2, ...],X1.shape = (6,)
         """
         self.tracks = []
-        detections = self.content2detections(content)
+        detections = content2detections(content)
         i = -1  # 这里先定义i的目的是防止第一帧里面没有目标导致下面的next_id出错
         for i, detection in enumerate(detections):
             self.tracks.append(Tracks(detection, track_id=i))
@@ -25,33 +51,13 @@ class Tracker:
         self.KF = KalmanFilter()
         self.confirm_frame = 3  # 设为确定态所需要连续匹配到的帧数
 
-    def content2detections(self, content):
-        """
-        从读取的文件中解析出检测到的目标信息
-        :param content: readline返回的列表
-        :return: [X1, X2, ...],X1.shape = (6,)
-        """
-        detections = []
-        for i, detection in enumerate(content):
-            data = detection.replace('\n', "").split(" ")
-            # detect_xywh = np.array(data[1:5], dtype="float")
-            detect_xywh = np.array(data, dtype="float")
-            if len(detect_xywh) == 2:
-                detect_xywh = np.append(detect_xywh, [80, 80])
-            if len(detect_xywh) == 3:
-                detect_xywh = detect_xywh.pop()
-
-            detect_xyxy = xywh_to_xyxy(detect_xywh)
-            detections.append(detect_xywh)
-        return detections
-
     def iou_mat(self, content):
         """
         计算IOU矩阵
         :param content: 读入文本信息
         :return:mat,(tracks, detections)
         """
-        detections = self.content2detections(content)
+        detections = content2detections(content)
         mat = np.zeros((len(self.tracks), len(detections)))
         for i, track in enumerate(self.tracks):
             for j, detection in enumerate(detections):
@@ -60,17 +66,13 @@ class Tracker:
         # mat[mat <= track.IOU_Threshold] = 0
         return mat
 
-    def iou_match(self, mat):
-        tracks_indices, det_indices = linear_sum_assignment(-1 * mat)
-        return tracks_indices, det_indices
-
     def update(self, content):
         mat = self.iou_mat(content)
-        detections = self.content2detections(content)
+        detections = content2detections(content)
         if np.all(mat == 0):
             track_indices, det_indices = ([], [])
         else:
-            track_indices, det_indices = self.iou_match(mat)
+            track_indices, det_indices = iou_match(mat)
         # track_indices, det_indices = self.iou_match(mat)
         for i, track in enumerate(self.tracks):  # 给匹配上的轨迹改变标记
             if i not in track_indices:

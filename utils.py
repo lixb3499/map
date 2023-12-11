@@ -183,6 +183,7 @@ def vector_norm(vector):
 
     return np.array(norm)
 
+
 def vector_norm_ax1(vector):
     """
     计算向量的二范数（Euclidean norm）。
@@ -200,6 +201,38 @@ def vector_norm_ax1(vector):
     norm = np.linalg.norm(vector, ord=2, axis=1)
 
     return np.array(norm)
+
+
+def intersect(A, B, C, D):
+    """
+    判断两条线段是否相交。
+
+    Parameters:
+        A (tuple): 第一条线段的起点坐标 (x, y)
+        B (tuple): 第一条线段的终点坐标 (x, y)
+        C (tuple): 第二条线段的起点坐标 (x, y)
+        D (tuple): 第二条线段的终点坐标 (x, y)
+
+    Returns:
+        bool: 如果两条线段相交则返回True，否则返回False
+    """
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+
+
+def ccw(A, B, C):
+    """
+    判断三个点的方向关系是否为逆时针（Counter-Clockwise）。
+
+    Parameters:
+        A (tuple): 第一个点的坐标 (x, y)
+        B (tuple): 第二个点的坐标 (x, y)
+        C (tuple): 第三个点的坐标 (x, y)
+
+    Returns:
+        bool: 如果方向为逆时针则返回True，否则返回False
+    """
+    return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+
 
 if __name__ == "__main__":
     box1 = [100, 100, 200, 200]

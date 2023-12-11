@@ -237,7 +237,7 @@ ylim = ax.get_ylim()
 # 获取画布中的像素点
 # pixel_center = coord_to_pixel(ax, ((xlim[0] + xlim[1]) / 2, (ylim[0] + ylim[1]) / 2))
 pixel_center = coord_to_pixel(ax, (0, 0))
-
+print("coord_to_pixel(ax, (-11, 2.4) = ", coord_to_pixel(ax, (-11, 2.4)))
 # 获取图形的 Canvas 对象，并将其转换为像素数组
 canvas = fig.canvas
 canvas.draw()
@@ -249,7 +249,7 @@ cv2.circle(img_array, pixel_center, distance_to_pixel(ax, 2), (0, 255, 255),
            2)  # 2 * fig.dpi 是半径，(0, 0, 255)是颜色 (BGR格式)
 
 # 显示图像数组
-# cv2.imshow('Pixel Circle on Matplotlib', img_array)
+cv2.imshow('Pixel Circle on Matplotlib', img_array)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 plt.close()
