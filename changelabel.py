@@ -36,8 +36,8 @@ def coord_to_pixel(ax, coord):
     return int(pixel_x), int(pixel_y)
 
 
-root = "example_5"
-label_path = "example_5/saved_points"
+root = "example_7_校正角度"
+label_path = "example_7_校正角度/saved_points"
 file_name = 'world_coords'
 save_txt = 'saved_txt'  # 转换后的label文件
 
@@ -70,7 +70,7 @@ def content2detections(content, ax):
 # 创建Matplotlib画布和坐标轴
 fig, ax = plt.subplots(figsize=(14, 9))
 
-ax.set_xlim([-15, 10])
+ax.set_xlim([0, 25])
 ax.set_ylim([-10, 10])
 
 if not os.path.exists(os.path.join(root, save_txt)):

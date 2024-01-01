@@ -26,8 +26,8 @@
 import cv2
 import numpy as np
 
-video_file1 = "concat/11-27.avi"
-video_file2 = "concat/11-27out.mp4"
+video_file1 = "concat/example_7_校正角度.avi"
+video_file2 = "concat/example_7_校正角度.mp4"
 
 ccap = cv2.VideoCapture(video_file1)
 tcap = cv2.VideoCapture(video_file2)
@@ -48,7 +48,7 @@ else:
     padding_left = padding_right = 0
 
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('concat/out.avi', fourcc, 10, (width1 + width2, height1))
+out = cv2.VideoWriter('concat/example_7_校正角度out.avi', fourcc, 6, (width1 + width2, height1))
 
 frame_count = 0
 while ccap.isOpened():

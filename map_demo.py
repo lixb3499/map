@@ -5,7 +5,6 @@ import datetime
 from tracker import Tracks
 from tracker1 import Tracker
 from kalmanfilter import KalmanFilter
-from scipy.optimize import linear_sum_assignment
 from matplotlib import patches
 import cv2
 import numpy as np
@@ -37,12 +36,12 @@ def coord_to_pixel(ax, coord):
 # file_name = 'world_coords'
 # save_txt = 'save_txt'
 
-label_path = "exp-11-27/saved_txt"
+label_path = "example_7_校正角度/saved_txt"
 file_name = ''
 save_txt = 'save_txt'
 
 # 设置视频相关参数
-SAVE_VIDEO = True
+SAVE_VIDEO = False
 current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 if not os.path.exists('video_out'):
     os.mkdir('video_out')
@@ -75,7 +74,7 @@ def content2detections(content, ax):
 # 创建Matplotlib画布和坐标轴
 fig, ax = plt.subplots(figsize=(14, 9))
 
-ax.set_xlim([-15, 10])
+ax.set_xlim([0, 25])
 ax.set_ylim([-10, 10])
 
 
@@ -96,21 +95,21 @@ def plot_box_map(ax, box_coords):
     ax.add_patch(rect)
 
 
-p1 = [-11, -2.4, -8.6, -7.4]
-p2 = [-8.6, -2.4, -6.2, -7.4]
-p3 = [-6.2, -2.4, -3.8, -7.4]
+p1 = [-11+14.34, -2.4, -8.6+14.34, -7.4]
+p2 = [-8.6+14.34, -2.4, -6.2+14.34, -7.4]
+p3 = [-6.2+14.34, -2.4, -3.8+14.34, -7.4]
 
-p4 = [-11, 2.4, -8.6, 7.4]
-p5 = [-8.6, 2.4, -6.2, 7.4]
-p6 = [-6.2, 2.4, -3.8, 7.4]
+p4 = [-11+14.34, 2.4, -8.6+14.34, 7.4]
+p5 = [-8.6+14.34, 2.4, -6.2+14.34, 7.4]
+p6 = [-6.2+14.34, 2.4, -3.8+14.34, 7.4]
 
-p7 = [-2.4, -2.4, 0, -7.4]
-p8 = [0, -2.4, 2.4, -7.4]
-p9 = [2.4, -2.4, 4.8, -7.4]
+p7 = [-2.4+14.34, -2.4, 0+14.34, -7.4]
+p8 = [0+14.34, -2.4, 2.4+14.34, -7.4]
+p9 = [2.4+14.34, -2.4, 4.8+14.34, -7.4]
 
-p10 = [-2.4, 2.4, 0, 7.4]
-p11 = [0, 2.4, 2.4, 7.4]
-p12 = [2.4, 2.4, 4.8, 7.4]
+p10 = [-2.4+14.34, 2.4, 0+14.34, 7.4]
+p11 = [0+14.34, 2.4, 2.4+14.34, 7.4]
+p12 = [2.4+14.34, 2.4, 4.8+14.34, 7.4]
 
 P = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
 for p in P:
@@ -168,9 +167,9 @@ while (True):
 
     ####################################################计数
     # 定义边界线
-    line1 = [coord_to_pixel(ax, (-11, 2.4)), coord_to_pixel(ax, (-11, -2.4))]  # 最左边的
-    line2 = [coord_to_pixel(ax, (4.8, 2.4)), coord_to_pixel(ax, (4.8, -2.4))]  # 最右边的
-    line3 = [coord_to_pixel(ax, (-2.4, 2.4)), coord_to_pixel(ax, (-2.4, -2.4))]  # 中间的
+    line1 = [coord_to_pixel(ax, (-11+14.34, 2.4)), coord_to_pixel(ax, (-11+14.34, -2.4))]  # 最左边的
+    line2 = [coord_to_pixel(ax, (4.8+14.34, 2.4)), coord_to_pixel(ax, (4.8+14.34, -2.4))]  # 最右边的
+    line3 = [coord_to_pixel(ax, (-2.4+14.34, 2.4)), coord_to_pixel(ax, (-2.4+14.34, -2.4))]  # 中间的
     # cv2.line(frame, line1[0], line1[1], (0, 255, 255), 2)
     cv2.line(frame, line2[0], line2[1], (0, 255, 255), 2)
     cv2.line(frame, line3[0], line3[1], (0, 255, 255), 2)

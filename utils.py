@@ -234,6 +234,24 @@ def ccw(A, B, C):
     return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
 
+
+def is_point_inside_rectangle(rectangle_left_top, rectangle_right_bottom, point):
+    """
+    判断点是否在矩形框内部。
+
+    参数:
+    - rectangle_left_top: 矩形框左上角坐标 (x1, y1)
+    - rectangle_right_bottom: 矩形框右下角坐标 (x2, y2)
+    - point: 要判断的点坐标 (x, y)
+
+    返回值:
+    - True 如果点在矩形框内，否则返回 False
+    """
+    x1, y1 = rectangle_left_top
+    x2, y2 = rectangle_right_bottom
+    x, y = point
+    return x1 <= x <= x2 and y1 <= y <= y2
+
 if __name__ == "__main__":
     box1 = [100, 100, 200, 200]
     box2 = [100, 100, 200, 300]
