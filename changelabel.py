@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 
-def coord_to_pixel(ax, coord):
+def coord_to_pixel(ax, coord, ):
     """
     将坐标中的点映射到画布中的像素点。
 

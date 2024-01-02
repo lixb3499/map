@@ -35,7 +35,7 @@ def content2detections(content):
 
 
 class Tracker:
-    def __init__(self, content):
+    def __init__(self, content, frame_rate = 6):
         """
         初始化时需要读入第一帧文件的信息。[X1, X2, ...],X1.shape = (6,)
         """
@@ -43,12 +43,13 @@ class Tracker:
         detections = content2detections(content)
         i = -1  # 这里先定义i的目的是防止第一帧里面没有目标导致下面的next_id出错
         for i, detection in enumerate(detections):
-            self.tracks.append(Tracks(detection, track_id=i))
+            self.tracks.append(Tracks(detection, track_id=i, frame_rate=frame_rate))
         for track in self.tracks:  # 第一次检测到的目标直接设置为确定态
             track.confirmflag = True
         self.next_id = i + 1
         self.max_lost_number = 10
         self.KF = KalmanFilter()
+        self.frame_rate = frame_rate
         self.confirm_frame = 3  # 设为确定态所需要连续匹配到的帧数
 
     def iou_mat(self, content):
@@ -91,7 +92,7 @@ class Tracker:
                 # self.next_id +=1  #注释掉这行应该解决了给不同目标分配同一个id的问题
         for k, detections in enumerate(detections):  # 没有匹配上轨迹的检测目标创建一个新的轨迹
             if k not in det_indices:
-                self.tracks.append(Tracks(detections, track_id=self.next_id))
+                self.tracks.append(Tracks(detections, track_id=self.next_id, frame_rate=self.frame_rate))
                 self.next_id += 1
 
     def draw_tracks(self, img):

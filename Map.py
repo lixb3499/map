@@ -15,8 +15,8 @@ class Map(Tracker):
     class Map inherit from class Tracker
     '''
 
-    def __init__(self, content, area_inf_list=[]):
-        super(Map, self).__init__(content)
+    def __init__(self, content, area_inf_list=[], frame_rate = 6):
+        super(Map, self).__init__(content, frame_rate)
         '''
         parking_id由Map分配
         :param content: 第一帧检测到的信息，用于初始化跟踪器

@@ -58,3 +58,10 @@ point_outside = (6, 6)
 print(is_point_inside_rectangle(rectangle_left_top, rectangle_right_bottom, point_inside))  # 输出: True
 print(is_point_inside_rectangle(rectangle_left_top, rectangle_right_bottom, point_outside))  # 输出: False
 
+for frame_counter in range(1, 11):  # 假设有10帧
+    if frame_counter % 2 == 0:
+        # 如果 frame_counter 是偶数，跳过当前循环
+        continue
+
+    # 这里是只在 frame_counter 是奇数时执行的代码
+    print(f"处理奇数帧: {frame_counter}")

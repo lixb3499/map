@@ -127,6 +127,9 @@ def coord_to_pixel(ax, coord):
     """
     x, y = coord
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
+
+    # 反转y轴
+    pixel_y = 900 - pixel_y
     return int(pixel_x), int(pixel_y)
 
 

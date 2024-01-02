@@ -1,6 +1,7 @@
 import os
+import argparse
 import cv2
-from utils import plot_one_box, cal_iou, xyxy_to_xywh, xywh_to_xyxy, updata_trace_list, draw_trace, intersect, ccw
+from utils import plot_one_box, cal_iou, xyxy_to_xywh, xywh_to_xyxy, updata_trace_list, draw_trace, intersect, ccw, coord_to_pixel
 import datetime
 from tracker import Tracks
 from tracker1 import Tracker
@@ -11,47 +12,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from Map import Map
-
-
-def coord_to_pixel(ax, coord):
-    """
-    将坐标中的点映射到画布中的像素点。
-
-    Parameters:
-        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
-        coord (tuple): 坐标中的点，形式为 (x, y)
-
-    Returns:
-        tuple: 画布中的像素点，形式为 (pixel_x, pixel_y)
-    """
-    x, y = coord
-    pixel_x, pixel_y = ax.transData.transform_point((x, y))
-
-    # 反转y轴
-    pixel_y = 900 - pixel_y
-    return int(pixel_x), int(pixel_y)
-
-
-# label_path = "exp-11-13/saved_points"
-# file_name = 'world_coords'
-# save_txt = 'save_txt'
-
-label_path = "example_7_校正角度/saved_txt"
-file_name = ''
-save_txt = 'save_txt'
-
-# 设置视频相关参数
-SAVE_VIDEO = False
-current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-if not os.path.exists('video_out'):
-    os.mkdir('video_out')
-video_filename = os.path.join('video_out', 'exp' + current_time + '.mp4')
-frame_rate = 6
-filelist = os.listdir(label_path)
-frame_number = len(filelist)
-
-
-# duration = 10  # 视频时长（秒）
 
 def content2detections(content, ax):
     """
@@ -70,153 +30,189 @@ def content2detections(content, ax):
         detections.append(detect_xywh)
     return detections
 
+# label_path = "exp-11-13/saved_points"
+# file_name = 'world_coords'
+# save_txt = 'save_txt'
+def main():
+    label_path = "example_7_校正角度/saved_txt"
+    file_name = ''
+    save_txt = 'save_txt'
 
-# 创建Matplotlib画布和坐标轴
-fig, ax = plt.subplots(figsize=(14, 9))
-
-ax.set_xlim([0, 25])
-ax.set_ylim([-10, 10])
-
-
-def plot_box_map(ax, box_coords):
-    """
-    在指定的画布上画出矩形框。
-
-    Parameters:
-        ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
-        box_coords (tuple): 矩形框的坐标，形式为 (x1, y1, x2, y2)
-    """
-    x1, y1, x2, y2 = box_coords
-
-    # 绘制矩形框
-    rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='g', facecolor='none')
-
-    # 将矩形框添加到坐标轴
-    ax.add_patch(rect)
+    # 设置视频相关参数
+    SAVE_VIDEO = False
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    if not os.path.exists('video_out'):
+        os.mkdir('video_out')
+    video_filename = os.path.join('video_out', 'exp' + current_time + '.mp4')
+    frame_rate = 6
+    filelist = os.listdir(label_path)
+    frame_number = len(filelist)
 
 
-p1 = [-11+14.34, -2.4, -8.6+14.34, -7.4]
-p2 = [-8.6+14.34, -2.4, -6.2+14.34, -7.4]
-p3 = [-6.2+14.34, -2.4, -3.8+14.34, -7.4]
+    # duration = 10  # 视频时长（秒）
 
-p4 = [-11+14.34, 2.4, -8.6+14.34, 7.4]
-p5 = [-8.6+14.34, 2.4, -6.2+14.34, 7.4]
-p6 = [-6.2+14.34, 2.4, -3.8+14.34, 7.4]
 
-p7 = [-2.4+14.34, -2.4, 0+14.34, -7.4]
-p8 = [0+14.34, -2.4, 2.4+14.34, -7.4]
-p9 = [2.4+14.34, -2.4, 4.8+14.34, -7.4]
+    # 创建Matplotlib画布和坐标轴
+    fig, ax = plt.subplots(figsize=(14, 9), )
 
-p10 = [-2.4+14.34, 2.4, 0+14.34, 7.4]
-p11 = [0+14.34, 2.4, 2.4+14.34, 7.4]
-p12 = [2.4+14.34, 2.4, 4.8+14.34, 7.4]
+    ax.set_xlim([0, 25])
+    ax.set_ylim([-10, 10])
 
-P = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
-for p in P:
-    plot_box_map(ax, p)
 
-with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r') as f:
-    content = f.readlines()
-    tracker = Tracker(content)
+    def plot_box_map(ax, box_coords):
+        """
+        在指定的画布上画出矩形框。
 
-xlim = ax.get_xlim()
-ylim = ax.get_ylim()
-canvas = FigureCanvas(fig)
+        Parameters:
+            ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
+            box_coords (tuple): 矩形框的坐标，形式为 (x1, y1, x2, y2)
+        """
+        x1, y1, x2, y2 = box_coords
 
-canvas.draw()
-img_array = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
-img_array = img_array.reshape(canvas.get_width_height()[::-1] + (3,))
+        # 绘制矩形框
+        rect = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2, edgecolor='g', facecolor='none')
 
-frame = img_array
+        # 将矩形框添加到坐标轴
+        ax.add_patch(rect)
 
-# 设置视频分辨率和大小
-width, height = 640, 480
-video_size = (width, height)
 
-# 设置视频编解码器
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    p1 = [-11+14.34, -2.4, -8.6+14.34, -7.4]
+    p2 = [-8.6+14.34, -2.4, -6.2+14.34, -7.4]
+    p3 = [-6.2+14.34, -2.4, -3.8+14.34, -7.4]
 
-if SAVE_VIDEO:
-    # 创建视频写入对象
-    video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
+    p4 = [-11+14.34, 2.4, -8.6+14.34, 7.4]
+    p5 = [-8.6+14.34, 2.4, -6.2+14.34, 7.4]
+    p6 = [-6.2+14.34, 2.4, -3.8+14.34, 7.4]
 
-mat = tracker.iou_mat(content)
+    p7 = [-2.4+14.34, -2.4, 0+14.34, -7.4]
+    p8 = [0+14.34, -2.4, 2.4+14.34, -7.4]
+    p9 = [2.4+14.34, -2.4, 4.8+14.34, -7.4]
 
-frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
-count1 = 0
-while (True):
-    # fig, ax = plt.subplots(figsize=(14, 9))
-    # canvas.draw()
+    p10 = [-2.4+14.34, 2.4, 0+14.34, 7.4]
+    p11 = [0+14.34, 2.4, 2.4+14.34, 7.4]
+    p12 = [2.4+14.34, 2.4, 4.8+14.34, 7.4]
+
+    P = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12]
+    for p in P:
+        plot_box_map(ax, p)
+
+    with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r') as f:
+        content = f.readlines()
+        tracker = Tracker(content)
+
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+    canvas = FigureCanvas(fig)
+
+    canvas.draw()
     img_array = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
     img_array = img_array.reshape(canvas.get_width_height()[::-1] + (3,))
+
     frame = img_array
 
-    print(f"当前帧数：{frame_counter}")
-    if frame_counter > frame_number:
-        break
-    # label_file_path = os.path.join(label_path, file_name + "_" + str(frame_counter) + ".txt")
-    label_file_path = os.path.join(label_path, file_name + str(frame_counter) + ".txt")
-    if not os.path.exists(label_file_path):
-        with open(label_file_path, "w") as f:
-            pass
-    with open(label_file_path, "r") as f:
-        content = f.readlines()
-        # track.predict()
-        tracker.update(content)
-    tracker.draw_tracks(frame)
+    # 设置视频分辨率和大小
+    # width, height = 640, 480
+    # video_size = (width, height)
 
-    ####################################################计数
-    # 定义边界线
-    line1 = [coord_to_pixel(ax, (-11+14.34, 2.4)), coord_to_pixel(ax, (-11+14.34, -2.4))]  # 最左边的
-    line2 = [coord_to_pixel(ax, (4.8+14.34, 2.4)), coord_to_pixel(ax, (4.8+14.34, -2.4))]  # 最右边的
-    line3 = [coord_to_pixel(ax, (-2.4+14.34, 2.4)), coord_to_pixel(ax, (-2.4+14.34, -2.4))]  # 中间的
-    # cv2.line(frame, line1[0], line1[1], (0, 255, 255), 2)
-    cv2.line(frame, line2[0], line2[1], (0, 255, 255), 2)
-    cv2.line(frame, line3[0], line3[1], (0, 255, 255), 2)
+    # 设置视频编解码器
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 
-    already_counted_1 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line1的id记录在这个list中
-    already_counted_2 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line2的id记录在这个list中
-    already_counted_3 = []
-    for track in tracker.tracks:
-        if len(track.trace_point_list) < 2:
-            break
-        point = track.trace_point_list[-1]
-        previous_point = track.trace_point_list[-2]
-        # print(point, previous_point)
-
-        if intersect(point, previous_point, line3[0], line3[1]) and track.track_id not in already_counted_3:
-            already_counted_2.append(track.track_id)
-            cv2.line(frame, line3[0], line3[1], (0, 0, 255), 4)
-            print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
-            if point[0] > previous_point[0]:
-                count1 = count1 + 1
-            else:
-                count1 = count1 - 1
-
-        if intersect(point, previous_point, line2[0], line2[1]) and track.track_id not in already_counted_2:
-            already_counted_2.append(track.track_id)
-            cv2.line(frame, line2[0], line2[1], (0, 0, 255), 4)
-            print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
-            if point[0] > previous_point[0]:
-                count1 = count1 - 1
-            else:
-                count1 = count1 + 1
-        print(count1)
-
-    cv2.putText(frame, "ALL BOXES(Green)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
-    cv2.putText(frame, "TRACKED BOX(Red)", (25, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-    cv2.putText(frame, f"count of area_1:    {count1}", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255),
-                2)
-
-    cv2.imshow('track', frame)
     if SAVE_VIDEO:
-        video_writer.write(frame)
-    frame_counter = frame_counter + 1
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-    plt.close()
+        # 创建视频写入对象
+        video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (1400, 900))
 
-video_writer.release()
+    mat = tracker.iou_mat(content)
+
+    frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
+    count1 = 0
+    while (True):
+        # fig, ax = plt.subplots(figsize=(14, 9))
+        # canvas.draw()
+        img_array = np.frombuffer(canvas.tostring_rgb(), dtype=np.uint8)
+        img_array = img_array.reshape(canvas.get_width_height()[::-1] + (3,))
+        frame = img_array
+
+        print(f"当前帧数：{frame_counter}")
+        if frame_counter > frame_number:
+            break
+        # label_file_path = os.path.join(label_path, file_name + "_" + str(frame_counter) + ".txt")
+        label_file_path = os.path.join(label_path, file_name + str(frame_counter) + ".txt")
+        if not os.path.exists(label_file_path):
+            with open(label_file_path, "w") as f:
+                pass
+        with open(label_file_path, "r") as f:
+            content = f.readlines()
+            # track.predict()
+            tracker.update(content)
+        tracker.draw_tracks(frame)
+
+        ####################################################计数
+        # 定义边界线
+        line1 = [coord_to_pixel(ax, (-11+14.34, 2.4)), coord_to_pixel(ax, (-11+14.34, -2.4))]  # 最左边的
+        line2 = [coord_to_pixel(ax, (4.8+14.34, 2.4)), coord_to_pixel(ax, (4.8+14.34, -2.4))]  # 最右边的
+        line3 = [coord_to_pixel(ax, (-2.4+14.34, 2.4)), coord_to_pixel(ax, (-2.4+14.34, -2.4))]  # 中间的
+        # cv2.line(frame, line1[0], line1[1], (0, 255, 255), 2)
+        cv2.line(frame, line2[0], line2[1], (0, 255, 255), 2)
+        cv2.line(frame, line3[0], line3[1], (0, 255, 255), 2)
+
+        already_counted_1 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line1的id记录在这个list中
+        already_counted_2 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line2的id记录在这个list中
+        already_counted_3 = []
+        for track in tracker.tracks:
+            if len(track.trace_point_list) < 2:
+                break
+            point = track.trace_point_list[-1]
+            previous_point = track.trace_point_list[-2]
+            # print(point, previous_point)
+
+            if intersect(point, previous_point, line3[0], line3[1]) and track.track_id not in already_counted_3:
+                already_counted_2.append(track.track_id)
+                cv2.line(frame, line3[0], line3[1], (0, 0, 255), 4)
+                print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
+                if point[0] > previous_point[0]:
+                    count1 = count1 + 1
+                else:
+                    count1 = count1 - 1
+
+            if intersect(point, previous_point, line2[0], line2[1]) and track.track_id not in already_counted_2:
+                already_counted_2.append(track.track_id)
+                cv2.line(frame, line2[0], line2[1], (0, 0, 255), 4)
+                print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
+                if point[0] > previous_point[0]:
+                    count1 = count1 - 1
+                else:
+                    count1 = count1 + 1
+            print(count1)
+
+        cv2.putText(frame, "ALL BOXES(Green)", (25, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 200, 0), 2)
+        cv2.putText(frame, "TRACKED BOX(Red)", (25, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(frame, f"count of area_1:    {count1}", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255),
+                    2)
+
+        cv2.imshow('track', frame)
+        if SAVE_VIDEO:
+            video_writer.write(frame)
+        frame_counter = frame_counter + 1
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        plt.close()
+
+    video_writer.release()
+
+def parse_args():
+    parser.add_argument('--label_path', type=str, default='example_7_校正角度/saved_txt',
+                        help='Path to the label directory')
+    parser.add_argument('--file_name', type=str, default='', help='Specify a file name')
+    parser.add_argument('--save_txt', type=str, default='save_txt', help='Specify the save_txt directory')
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    main()
+
+
+
+
 
 """
 # 循环绘制图形并保存为视频
