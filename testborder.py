@@ -32,6 +32,7 @@ def content2detections(content, ax):
         detections.append(detect_xywh)
     return detections
 
+
 def plot_box_map(ax, box_coords):
     """
     在指定的画布上画出矩形框。
@@ -93,7 +94,7 @@ def main(args):
     area1 = [coord_to_pixel(ax, (-2.4 + 14.34, 2.4)), coord_to_pixel(ax, (4.8 + 14.34, -2.4))]  # 注意必须是左上、右下的形式
     area2 = [coord_to_pixel(ax, (3, 7)), coord_to_pixel(ax, (11, 1.2))]
 
-    areas_list  = args.areas
+    areas_list = args.areas
     area_pixels = []
     for area in areas_list:
         area_pixels.append([coord_to_pixel(ax, (area[i], area[i + 1])) for i in range(0, len(area), 2)])
@@ -121,7 +122,8 @@ def main(args):
 
     if SAVE_VIDEO:
         # 创建视频写入对象
-        video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate, (100*args.fig_size[0], 100*args.fig_size[1]))
+        video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate,
+                                       (100 * args.fig_size[0], 100 * args.fig_size[1]))
 
     mat = tracker.iou_mat(content)
 
@@ -131,7 +133,6 @@ def main(args):
         # if frame_counter % 2 == 0:
         #     # 如果 frame_counter 是偶数，跳过当前循环
         #     continue
-
 
         # fig, ax = plt.subplots(figsize=(14, 9))
         # canvas.draw()
@@ -236,10 +237,10 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 if __name__ == '__main__':
     args = parse_args()
     main(args)
-
 
 """
 # 循环绘制图形并保存为视频

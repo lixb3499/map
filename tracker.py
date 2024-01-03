@@ -8,7 +8,7 @@ from kalmanfilter import KalmanFilter
 
 
 class Tracks:
-    def __init__(self, initial_state, initial_cov=np.eye(6), track_id=0, frame_rate = 6):
+    def __init__(self, initial_state, initial_cov=np.eye(6), track_id=0, frame_rate=6):
         # 默认初始化状态为[x ,y, w, h, 0, 0]
         # initial_state =
         self.h = 80  # 用中心点初始化时设置默认边框大小
@@ -36,7 +36,7 @@ class Tracks:
         self.confirmflag = False  # 轨迹需要检测到三帧以上才能变为确定的一条轨迹
         self.parking_id = None  # 该轨迹在地图中对应的车位
         self.v_Threshold = 2
-        self.stoptime = 0  #滞留时间，判断为stop的帧数除以帧率
+        self.stoptime = 0  # 滞留时间，判断为stop的帧数除以帧率
 
     # def predict(self):
     #     self.X, self.P = self.KF.predict(self.X, self.P)
@@ -65,12 +65,10 @@ class Tracks:
             self.max_iou_matched = True
 
     def ifstop(self, v_Threshold):
-        if 21.6*self.v_average < v_Threshold:
+        if 21.6 * self.v_average < v_Threshold:
             return True
         else:
             return False
-
-
 
     def update(self):
         if self.max_iou_matched:
@@ -93,7 +91,6 @@ class Tracks:
             if len(self.trace_v_list) > 0:  # 第一次检测到的时候也是匹配不到的
                 self.X[-2::] = self.trace_v_list[0]
             self.X, self.P = self.KF.predict(self.X, self.P)
-
             # self.X[2: 4] = [120, 120]
 
             self.number_since_match = 0
@@ -129,14 +126,15 @@ class Tracks:
             self.trace_v_list_value.append(vector_norm([self.dx / 43, self.dy / 35]))
 
     def updatestoptime(self, frame_rate):
-        self.stoptime = self.stoptime + 1/self.frame_rate
+        self.stoptime = self.stoptime + 1 / self.frame_rate
 
     def draw(self, img):
         draw_trace(img, self.trace_point_list)
         if self.ifstop(self.v_Threshold):
             if self.max_iou_matched:
-                # cv2.putText(img, f"Tracking  ID={self.track_id}, V={21.6*vector_norm(self.trace_v_list[-1]):.2f}km/h", (int(self.target_box[0]-30), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
-                #             0.7, (255, 0, 0), 2)
+                # cv2.putText(img, f"Tracking  ID={self.track_id}, V={21.6*vector_norm(self.trace_v_list[
+                # -1]):.2f}km/h", (int(self.target_box[0]-30), int(self.target_box[1] - 5)),
+                # cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
                 cv2.putText(img, f"Tracking  ID={self.track_id}, stop, t = {self.stoptime:.2f}s",
                             (int(self.target_box[0] - 30), int(self.target_box[1] - 5)), cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (255, 0, 0), 2)
@@ -159,7 +157,8 @@ class Tracks:
                 # draw_trace(img, self.trace_point_list)
             else:
                 # pass
-                cv2.putText(img, f"Lost ID={self.track_id}, V={3.6 * self.frame_rate * vector_norm(self.trace_v_list[-1]):.2f}km/h",
+                cv2.putText(img,
+                            f"Lost ID={self.track_id}, V={3.6 * self.frame_rate * vector_norm(self.trace_v_list[-1]):.2f}km/h",
                             (int(self.target_box[0] - 30), int(self.target_box[1] - 5)),
                             cv2.FONT_HERSHEY_SIMPLEX,
                             0.7, (255, 255, 0), 2)
