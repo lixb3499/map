@@ -32,11 +32,26 @@ class KalmanFilter(object):
         self.P = np.eye(6)
 
     def predict(self, X, cov):
+        """
+             预测步骤：根据先验状态和协方差矩阵进行状态预测。
+
+             :param X: 先验状态
+             :param cov: 先验协方差矩阵
+             :return: 预测后的状态和协方差矩阵
+        """
         X_predict = np.dot(self.A, X)
         cov1 = np.dot(self.A, cov)
         cov_predict = np.dot(cov1, self.A.T) + self.Q
         return X_predict, cov_predict
     def update(self, X_predict, cov_predict, Z):
+        """
+        更新步骤：根据观测值进行状态更新。
+
+        :param X_predict: 先验状态
+        :param cov_predict: 先验协方差矩阵
+        :param Z: 当前观测到的状态
+        :return: 后验状态和后验协方差矩阵
+        """
         # ------计算卡尔曼增益---------------------
         # Z是当前观测到的状态
         k1 = np.dot(cov_predict, self.H.T)
@@ -54,7 +69,7 @@ class KalmanFilter(object):
 
 
 if __name__ == "__main__":
-
+    '''下面这段是用来测试上面的函数的，可以忽略'''
     # 状态初始化
     initial_target_box = [729, 238, 764, 339]  # 目标初始bouding box
     # initial_target_box = [193 ,342 ,250 ,474]

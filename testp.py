@@ -297,3 +297,33 @@ print(f"横坐标轴上 {unit_length_x} 单位长度对应 {pixels_x} 像素点"
 print(f"纵坐标轴上 {unit_length_y} 单位长度对应 {pixels_y} 像素点")
 
 print(utils.vector_norm([2, 2]))
+
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+import cv2
+
+# 创建一张空白图像
+image = np.zeros((200, 400, 3), dtype=np.uint8)
+
+# 转换为PIL图像
+pil_image = Image.fromarray(image)
+draw = ImageDraw.Draw(pil_image)
+
+# 设置中文字体
+font_path = 'NotoSansSC-VariableFont_wght.ttf'  # 替换为中文字体文件的路径
+font_size = 30
+font = ImageFont.truetype(font_path, font_size)
+
+# 绘制中文文字
+text = "你好，OpenCV!"
+pos = (50, 100)
+draw.text(pos, text, font=font, fill=(255, 255, 255))
+
+# 转换回OpenCV图像
+cv_image = np.array(pil_image)
+
+# 显示图像
+cv2.imshow('Chinese Text', cv_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+

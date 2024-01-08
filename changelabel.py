@@ -11,12 +11,10 @@ from matplotlib import pyplot as plt
 
 from matplotlib import patches
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 
-def coord_to_pixel(ax, coord, ):
+def coord_to_pixel(ax, coord):
     """
     将坐标中的点映射到画布中的像素点。
 
@@ -31,13 +29,13 @@ def coord_to_pixel(ax, coord, ):
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
 
     # # 反转y轴
-    # pixel_y = 900 - pixel_y
+    pixel_y = 900 - pixel_y
 
     return int(pixel_x), int(pixel_y)
 
 
-root = "example_7_校正角度"
-label_path = "example_7_校正角度/saved_points"
+root = "example_7_demo_0105"
+label_path = "example_7_demo_0105/saved_points"
 file_name = 'world_coords'
 save_txt = 'saved_txt'  # 转换后的label文件
 
@@ -47,7 +45,7 @@ save_txt = 'saved_txt'  # 转换后的label文件
 # frame_rate = 6
 # # duration = 10  # 视频时长（秒）
 
-def content2detections(content, ax):
+def content2detections(content, ax, y_range=(-2.5, 2.5)):
     """
     从读取的文件中解析出检测到的目标信息
     :param content: readline返回的列表
@@ -58,12 +56,14 @@ def content2detections(content, ax):
     for i, detection in enumerate(content):
         data = detection.replace('\n', "").split(" ")
         # detect_xywh = np.array(data[1:5], dtype="float")
-        detect_xywh = np.array(data, dtype="float")
-        detect_xywh = np.delete(detect_xywh, -1)
+        if data[2] == 'Car':
+            detect_xywh = np.array(data[0:2], dtype="float")
+            if len(detect_xywh) != 2:  # 有时候给到的数据是10.874272061490796 3.172816342766715 0.0形式的
+                detect_xywh = np.delete(detect_xywh, -1)
 
-        if detect_xywh[1] > -3.0 and detect_xywh[1] < 3.0:
-            detect_xywh = coord_to_pixel(ax, detect_xywh)
-            detections.append(detect_xywh)
+            if min(y_range) < detect_xywh[1] < max(y_range):
+                detect_xywh = coord_to_pixel(ax, detect_xywh)
+                detections.append([detect_xywh, *data[2:]])
     return detections
 
 
@@ -72,6 +72,7 @@ fig, ax = plt.subplots(figsize=(14, 9))
 
 ax.set_xlim([0, 25])
 ax.set_ylim([-10, 10])
+ax.invert_yaxis()
 
 if not os.path.exists(os.path.join(root, save_txt)):
     os.makedirs(os.path.join(root, save_txt))
@@ -79,11 +80,16 @@ if not os.path.exists(os.path.join(root, save_txt)):
 filelist = os.listdir(label_path)
 n = len(filelist)
 for i in range(n):
-    with open(os.path.join(label_path, file_name + '_' + str(i) + ".txt"), 'r') as f:
+    with open(os.path.join(label_path, file_name + '_' + str(i).zfill(3) + ".txt"), 'r', encoding='utf-8') as f:
         content = f.readlines()
         detection = content2detections(content, ax)
-    with open(os.path.join(root, save_txt) + f'/{i}.txt', 'w') as file:
+    with open(os.path.join(root, save_txt) + f'/{i}.txt', 'w', encoding='utf-8') as file:
         for item in detection:
-            # 将元组转换为字符串，并写入文件
-            file.write(f"{item[0]} {item[1]}\n")
+            coordinates_str = ' '.join(map(str, item[0]))
+            item[0] = coordinates_str
+
+            # 将所有数据转换为字符串，例如：'795 449 4 粤BG53030 新能源牌'
+            data_str = ' '.join(map(str, item))
+
+            file.write(f"{data_str}\n")
         print(f'write file {i}')

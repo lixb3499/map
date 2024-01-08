@@ -70,6 +70,7 @@ def main(args):
 
     ax.set_xlim(args.x_lim)
     ax.set_ylim(args.y_lim)
+    ax.invert_yaxis()
 
     p1 = [-11 + 14.34, -2.4, -8.6 + 14.34, -7.4]
     p2 = [-8.6 + 14.34, -2.4, -6.2 + 14.34, -7.4]
@@ -99,7 +100,7 @@ def main(args):
     for area in areas_list:
         area_pixels.append([coord_to_pixel(ax, (area[i], area[i + 1])) for i in range(0, len(area), 2)])
 
-    with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r') as f:
+    with open(os.path.join(label_path, file_name + str(0) + ".txt"), 'r', encoding='utf-8') as f:
         content = f.readlines()
         tracker = Map(content, area_pixels, frame_rate)
 
@@ -125,7 +126,7 @@ def main(args):
         video_writer = cv2.VideoWriter(video_filename, fourcc, frame_rate,
                                        (100 * args.fig_size[0], 100 * args.fig_size[1]))
 
-    mat = tracker.iou_mat(content)
+    # mat = tracker.iou_mat(content)
 
     frame_counter = 1  # 这里由视频label文件由0还是1开始命名确定
     count1 = 0
@@ -148,49 +149,12 @@ def main(args):
         if not os.path.exists(label_file_path):
             with open(label_file_path, "w") as f:
                 pass
-        with open(label_file_path, "r") as f:
+        with open(label_file_path, "r", encoding='utf-8') as f:
             content = f.readlines()
             # track.predict()
             tracker.update(content)
         tracker.draw_tracks(frame)
 
-        # ####################################################计数
-        # # 定义边界线
-        # line1 = [coord_to_pixel(ax, (-11+14.34, 2.4)), coord_to_pixel(ax, (-11+14.34, -2.4))]  # 最左边的
-        # line2 = [coord_to_pixel(ax, (4.8+14.34, 2.4)), coord_to_pixel(ax, (4.8+14.34, -2.4))]  # 最右边的
-        # line3 = [coord_to_pixel(ax, (-2.4+14.34, 2.4)), coord_to_pixel(ax, (-2.4+14.34, -2.4))]  # 中间的
-        # # cv2.line(frame, line1[0], line1[1], (0, 255, 255), 2)
-        # cv2.line(frame, line2[0], line2[1], (0, 255, 255), 2)
-        # cv2.line(frame, line3[0], line3[1], (0, 255, 255), 2)
-        #
-        # already_counted_1 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line1的id记录在这个list中
-        # already_counted_2 = []  # 我们假设每个id只穿越一次每个line，将已经穿越line2的id记录在这个list中
-        # already_counted_3 = []
-        # for track in tracker.tracks:
-        #     if len(track.trace_point_list) < 2:
-        #         break
-        #     point = track.trace_point_list[-1]
-        #     previous_point = track.trace_point_list[-2]
-        #     # print(point, previous_point)
-        #
-        #     if intersect(point, previous_point, line3[0], line3[1]) and track.track_id not in already_counted_3:
-        #         already_counted_2.append(track.track_id)
-        #         cv2.line(frame, line3[0], line3[1], (0, 0, 255), 4)
-        #         print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
-        #         if point[0] > previous_point[0]:
-        #             count1 = count1 + 1
-        #         else:
-        #             count1 = count1 - 1
-        #
-        #     if intersect(point, previous_point, line2[0], line2[1]) and track.track_id not in already_counted_2:
-        #         already_counted_2.append(track.track_id)
-        #         cv2.line(frame, line2[0], line2[1], (0, 0, 255), 4)
-        #         print("QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ")
-        #         if point[0] > previous_point[0]:
-        #             count1 = count1 - 1
-        #         else:
-        #             count1 = count1 + 1
-        #     print(count1)
         for track in tracker.tracks:
             if len(track.trace_point_list) < 2:
                 break
@@ -221,18 +185,19 @@ def parse_args():
     parser = argparse.ArgumentParser()
 
     # 添加参数
-    parser.add_argument('--label_path', type=str, default='example_7_校正角度/saved_txt',
+    parser.add_argument('--label_path', type=str, default='example_7_demo_0105/saved_txt',
                         help='Path to the label directory')
     parser.add_argument('--file_name', type=str, default='', help='Specify a file name')
     parser.add_argument('--save_txt', type=str, default='save_txt', help='Specify the save_txt directory')
-    parser.add_argument('--save_video', action='store_true', help='Flag to save video', default=True)
+    parser.add_argument('--save_video', action='store_true', help='Flag to save video', default=False)
     parser.add_argument('--frame_rate', type=int, default=6, help='Frame rate for video')
     parser.add_argument('--fig_size', nargs=2, type=float, default=[14, 9], help='Figure size as width height')
     parser.add_argument('--x_lim', nargs=2, type=float, default=[0, 25], help='X-axis limits')
     parser.add_argument('--y_lim', nargs=2, type=float, default=[-10, 10], help='Y-axis limits')
 
-    parser.add_argument('--areas', nargs='+', type=float, default=[[11.94, 2.4, 19.14, -2.4], [3, 7, 11, 1.2]],
-                        help='Define areas as left-top and right-bottom coordinates in the format x1 y1 x2 y2, x1 y1 x2 y2, ...')
+    parser.add_argument('--areas', nargs='+', type=float, default=[[11.94, -2.4, 19.14, 2.4], [3, -7, 11, -1.2]],
+                        help='Define areas as left-top and right-bottom coordinates in the format x1 y1 x2 y2, '
+                             'x1 y1 x2 y2, ...')  # 必须是左上、右下对应的
 
     args = parser.parse_args()
     return args

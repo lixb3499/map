@@ -2,8 +2,16 @@ import cv2
 from matplotlib import patches
 import numpy as np
 
-
 def xyxy_to_xywh(xyxy):
+    """
+    将边界框格式从 (x1, y1, x2, y2) 转换为 (center_x, center_y, width, height)。
+
+    参数:
+        xyxy (list): 包含边界框坐标 (x1, y1, x2, y2) 的列表。
+
+    返回值:
+        tuple: 边界框格式为 (center_x, center_y, width, height) 的元组。
+    """
     center_x = (xyxy[0] + xyxy[2]) / 2
     center_y = (xyxy[1] + xyxy[3]) / 2
     w = xyxy[2] - xyxy[0]
@@ -11,13 +19,24 @@ def xyxy_to_xywh(xyxy):
     return (center_x, center_y, w, h)
 
 
+
 def plot_one_box(xyxy, img, color=(0, 200, 0), target=False):
+    """
+    在图像上绘制单个边界框。这个函数用于在图像上绘制边界框。参数xyxy是边界框的坐标（左上角和右下角），
+    img是输入的图像，color是边界框的颜色，默认为绿色，target是一个标志，如果为True，则使用红色表示边界框，
+    否则使用指定颜色。
+
+    参数:
+        xyxy (list): 边界框坐标 (x1, y1, x2, y2)。
+        img (numpy.ndarray): 输入图像。
+        color (tuple): 边界框颜色 (默认为绿色)。
+        target (bool): 标志指示边界框是否表示目标 (默认为False)。
+    """
     xy1 = (int(xyxy[0]), int(xyxy[1]))
     xy2 = (int(xyxy[2]), int(xyxy[3]))
     if target:
         color = (0, 0, 255)
     cv2.rectangle(img, xy1, xy2, color, 1, cv2.LINE_AA)  # filled
-
 
 def plot_box_map(ax, box_coords):
     """
@@ -37,12 +56,24 @@ def plot_box_map(ax, box_coords):
 
 
 def updata_trace_list(box_center, trace_list, max_list_len=50):
+    """
+    更新轨迹列表，保持其长度不超过指定的最大长度。
+
+    参数:
+        box_center (tuple): 边界框中心坐标 (x, y)。
+        trace_list (list): 轨迹列表。
+        max_list_len (int): 最大轨迹列表长度 (默认为50)。
+
+    返回值:
+        list: 更新后的轨迹列表。
+    """
     if len(trace_list) <= max_list_len:
         trace_list.append(box_center)
     else:
         trace_list.pop(0)
         trace_list.append(box_center)
     return trace_list
+
 
 
 def draw_trace(img, trace_list):
@@ -114,23 +145,28 @@ def xywh_to_xyxy(xywh):
     return [x1, y1, x2, y2]
 
 
-def coord_to_pixel(ax, coord):
+def coord_to_pixel(ax, coord, y_range=900):
     """
     将坐标中的点映射到画布中的像素点。
 
     Parameters:
         ax (matplotlib.axes._axes.Axes): Matplotlib的坐标轴对象
         coord (tuple): 坐标中的点，形式为 (x, y)
+        y_range (int): 画布y轴的范围，默认为900像素
 
     Returns:
         tuple: 画布中的像素点，形式为 (pixel_x, pixel_y)
     """
+    # 从坐标轴的数据坐标系转换为画布的像素坐标系
     x, y = coord
     pixel_x, pixel_y = ax.transData.transform_point((x, y))
 
-    # 反转y轴
-    pixel_y = 900 - pixel_y
+    # 反转y轴，将坐标系原点从左上角移动到左下角，这是因为matpoltlib中的坐标原点在坐下而cv2中的坐标原点在左上
+    pixel_y = y_range - pixel_y
+
+    # 返回整数类型的像素坐标
     return int(pixel_x), int(pixel_y)
+
 
 
 def plot_box_map(ax, box_coords):
